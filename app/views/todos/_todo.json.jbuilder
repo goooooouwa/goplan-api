@@ -1,0 +1,1 @@
+json.(todo, :id, :project_id, :name, :description, :repeat, :time_span, :start_date, :end_date, :repeat_period, :repeat_times, :instance_time_span)

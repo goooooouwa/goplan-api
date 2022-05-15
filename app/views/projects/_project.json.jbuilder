@@ -1,0 +1,1 @@
+json.(project, :id, :goal_name, :target_date)
