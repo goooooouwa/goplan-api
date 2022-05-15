@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  project: one
+  name: MyString
+  description: MyText
+  time_span: 1
+  start_date: 2022-05-15 11:18:21
+  end_date: 2022-05-15 11:18:21
+  repeat: false
+  repeat_period: MyString
+  repeat_times: 1
+  instance_time_span: 1
+
+two:
+  project: two
+  name: MyString
+  description: MyText
+  time_span: 1
+  start_date: 2022-05-15 11:18:21
+  end_date: 2022-05-15 11:18:21
+  repeat: false
+  repeat_period: MyString
+  repeat_times: 1
+  instance_time_span: 1
