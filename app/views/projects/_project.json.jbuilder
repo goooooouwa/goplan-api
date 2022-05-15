@@ -1,1 +1,1 @@
-json.(project, :id, :goal_name, :target_date)
+json.merge! project.attributes
