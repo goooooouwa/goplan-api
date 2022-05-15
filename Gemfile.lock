@@ -83,6 +83,9 @@ GEM
     io-console (0.5.11)
     irb (1.4.1)
       reline (>= 0.3.0)
+    jbuilder (2.11.5)
+      actionview (>= 5.0.0)
+      activesupport (>= 5.0.0)
     loofah (2.18.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -162,6 +165,7 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   debug
+  jbuilder
   puma (~> 5.0)
   rails (~> 7.0.3)
   sqlite3 (~> 1.4)
