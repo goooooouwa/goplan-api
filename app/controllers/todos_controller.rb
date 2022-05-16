@@ -1,21 +1,20 @@
 class TodosController < ApplicationController
-  before_action :set_todo, only: %i[ show update destroy ]
+  before_action :set_todo, only: %i[show update destroy]
 
   # GET /todos
   def index
-    @todos = Todo.all
+    @todos = params[:project_id].present? ? Project.find(params[:project_id]).todos : Todo.all
   end
 
   # GET /todos/1
-  def show
-  end
+  def show; end
 
   # POST /todos
   def create
     @todo = Todo.new(todo_params)
 
     if @todo.save
-      render "todos/show", status: :created, location: @todo
+      render 'todos/show', status: :created, location: @todo
     else
       render json: @todo.errors, status: :unprocessable_entity
     end
@@ -24,7 +23,7 @@ class TodosController < ApplicationController
   # PATCH/PUT /todos/1
   def update
     if @todo.update(todo_params)
-      render "todos/show"
+      render 'todos/show'
     else
       render json: @todo.errors, status: :unprocessable_entity
     end
@@ -36,13 +35,15 @@ class TodosController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_todo
-      @todo = Todo.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def todo_params
-      params.require(:todo).permit(:project_id, :name, :description, :time_span, :start_date, :end_date, :repeat, :repeat_period, :repeat_times, :instance_time_span)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_todo
+    @todo = Todo.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def todo_params
+    params.require(:todo).permit(:project_id, :name, :description, :time_span, :start_date, :end_date, :repeat,
+                                 :repeat_period, :repeat_times, :instance_time_span)
+  end
 end
