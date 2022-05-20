@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_05_15_031821) do
+ActiveRecord::Schema[7.0].define(version: 2022_05_14_144639) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "projects", force: :cascade do |t|
     t.string "goal_name"
     t.datetime "target_date"
@@ -19,8 +22,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_05_15_031821) do
   end
 
   create_table "todo_children", force: :cascade do |t|
-    t.integer "todo_id", null: false
-    t.integer "child_id", null: false
+    t.bigint "todo_id", null: false
+    t.bigint "child_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["child_id"], name: "index_todo_children_on_child_id"
@@ -28,7 +31,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_05_15_031821) do
   end
 
   create_table "todos", force: :cascade do |t|
-    t.integer "project_id", null: false
+    t.bigint "project_id", null: false
     t.string "name"
     t.text "description"
     t.integer "time_span"
@@ -43,7 +46,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_05_15_031821) do
     t.index ["project_id"], name: "index_todos_on_project_id"
   end
 
-  add_foreign_key "todo_children", "children"
   add_foreign_key "todo_children", "todos"
+  add_foreign_key "todo_children", "todos", column: "child_id"
   add_foreign_key "todos", "projects"
 end
