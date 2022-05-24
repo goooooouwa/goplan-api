@@ -8,10 +8,17 @@
             "name": "Rails server",
             "type": "Ruby",
             "request": "launch",
+            "cwd": "${workspaceRoot}",
             "program": "${workspaceRoot}/bin/rails",
             "args": [
                 "server"
-            ]
+            ],
+            "env": {
+                "PATH": "/Users/greg/.rvm/gems/ruby-2.7.6/bin:/Users/greg/.rvm/gems/ruby-2.7.6@global/bin:/Users/greg/.rvm/rubies/ruby-2.7.6/bin:/Users/greg/.rvm/bin:/Applications/MacVim.app/Contents/bin:/Users/greg/.nvm/versions/node/v16.15.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+                "GEM_HOME": "/Users/greg/.rvm/gems/ruby-2.7.6",
+                "GEM_PATH": "/Users/greg/.rvm/gems/ruby-2.7.6:/Users/greg/.rvm/gems/ruby-2.7.6@global",
+                "RUBY_VERSION": "ruby-2.7.6"
+            }
         }
     ]
 }
