@@ -11,4 +11,6 @@ class Todo < ApplicationRecord
 
   has_many :dependents, through: :todo_dependents, source: :child
   has_many :dependencies, through: :todo_dependencies, source: :todo
+
+  accepts_nested_attributes_for :todo_dependents, :todo_dependencies
 end
