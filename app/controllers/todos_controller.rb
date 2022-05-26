@@ -3,7 +3,7 @@ class TodosController < ApplicationController
 
   # GET /todos
   def index
-    @todos = params[:project_id].present? ? Project.find(params[:project_id]).todos : Todo.all
+    @todos = Todo.search(params)
   end
 
   # GET /todos/1
