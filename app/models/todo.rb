@@ -15,7 +15,7 @@ class Todo < ApplicationRecord
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies
 
   scope :of_project, ->(project_id) { where('project_id = ?', project_id) }
-  scope :name_contains, ->(name) { where('name LIKE ?', '%' + Todo.sanitize_sql_like(name) + '%') }
+  scope :name_contains, ->(name) { where('lower(name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
 
   def self.search(query)
     scopes = []
