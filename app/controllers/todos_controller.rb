@@ -22,6 +22,7 @@ class TodosController < ApplicationController
 
   # PATCH/PUT /todos/1
   def update
+    @todo.dependencies.delete_all   # avoid duplicate dependencies
     if @todo.update(todo_params)
       render 'todos/show'
     else
