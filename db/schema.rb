@@ -40,7 +40,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_05_14_144639) do
     t.boolean "repeat"
     t.string "repeat_period"
     t.integer "repeat_times"
-    t.float "instance_time_span"
+    t.integer "instance_time_span"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["project_id"], name: "index_todos_on_project_id"

@@ -10,7 +10,7 @@ class CreateTodos < ActiveRecord::Migration[7.0]
       t.boolean :repeat
       t.string :repeat_period
       t.integer :repeat_times
-      t.float :instance_time_span
+      t.integer :instance_time_span
 
       t.timestamps
     end
