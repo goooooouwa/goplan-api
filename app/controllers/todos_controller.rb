@@ -44,7 +44,7 @@ class TodosController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def todo_params
-    params.require(:todo).permit(:project_id, :name, :description, :time_span, :start_date, :end_date, :repeat,
+    params.require(:todo).permit(:project_id, :name, :description, :status, :time_span, :start_date, :end_date, :repeat,
                                  :repeat_period, :repeat_times, :instance_time_span,
                                  todo_dependents_attributes: [:child_id],
                                  todo_dependencies_attributes: [:todo_id])
