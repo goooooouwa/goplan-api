@@ -128,7 +128,7 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
-    puma (5.6.4)
+    puma (4.3.12)
       nio4r (~> 2.0)
     racc (1.6.0)
     rack (2.2.3)
@@ -193,6 +193,7 @@ GEM
 
 PLATFORMS
   x86_64-darwin-19
+  x86_64-darwin-21
   x86_64-linux
 
 DEPENDENCIES
@@ -201,7 +202,7 @@ DEPENDENCIES
   jbuilder
   pg
   pry-byebug
-  puma (~> 5.0)
+  puma (~> 4.3)
   rack-cors
   rails (~> 7.0.3)
   rubocop
