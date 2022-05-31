@@ -32,4 +32,16 @@ class Todo < ApplicationRecord
   def self.send_chain(scopes)
     Array(scopes).inject(self) { |o, a| o.send(*a) }
   end
+
+  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) }
+
+  private
+  def update_dependents_timeline
+    delta = end_date - end_date_previously_was
+    self.dependents.each do |dependent|
+      dependent.start_date += delta
+      dependent.end_date += delta
+      dependent.save
+    end
+  end
 end
