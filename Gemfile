@@ -48,3 +48,5 @@ group :development do
   gem 'pry-byebug'
 end
 
+
+gem "sidekiq", "~> 6.4"
