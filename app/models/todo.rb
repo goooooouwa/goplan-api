@@ -12,7 +12,7 @@ class Todo < ApplicationRecord
   has_many :dependents, through: :todo_dependents, source: :child
   has_many :dependencies, through: :todo_dependencies, source: :todo
 
-  accepts_nested_attributes_for :todo_dependents, :todo_dependencies
+  accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents
 
   scope :of_project, ->(project_id) { where('project_id = ?', project_id) }
   scope :name_contains, ->(name) { where('lower(name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }

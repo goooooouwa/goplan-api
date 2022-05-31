@@ -1,5 +1,5 @@
 class TodosController < ApplicationController
-  before_action :set_todo, only: %i[show update destroy]
+  before_action :set_todo, only: %i[show update update_dependencies destroy]
 
   # GET /todos
   def index
@@ -20,9 +20,18 @@ class TodosController < ApplicationController
     end
   end
 
+  # PATCH/PUT /todos/1/dependencies
+  def update_dependencies
+    @todo.dependencies = Todo.find todo_params[:dependencies_attributes]
+    if @todo.save
+      render 'todos/show'
+    else
+      render json: @todo.errors, status: :unprocessable_entity
+    end
+  end
+
   # PATCH/PUT /todos/1
   def update
-    @todo.dependencies.delete_all   # avoid duplicate dependencies
     if @todo.update(todo_params)
       render 'todos/show'
     else
@@ -46,7 +55,7 @@ class TodosController < ApplicationController
   def todo_params
     params.require(:todo).permit(:project_id, :name, :description, :status, :time_span, :start_date, :end_date, :repeat,
                                  :repeat_period, :repeat_times, :instance_time_span,
-                                 todo_dependents_attributes: [:child_id],
+                                 dependencies_attributes: [],
                                  todo_dependencies_attributes: [:todo_id])
   end
 end
