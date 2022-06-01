@@ -37,8 +37,8 @@ class Todo < ApplicationRecord
     Array(scopes).inject(self) { |o, a| o.send(*a) }
   end
 
-  after_update :update_end_date, if: Proc.new { |todo| todo.saved_change_to_attribute?(:status) }
-  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) }
+  before_update :change_end_date, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
+  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date) / 1.days > 1 }
 
   private
   def todo_dependencies_cannot_include_self
@@ -53,14 +53,17 @@ class Todo < ApplicationRecord
     end
   end
 
-  def update_end_date
-    update(end_date: Time.current)
+  def change_end_date
+    self.end_date = Time.current
   end
 
   def update_dependents_timeline
-    delta = end_date - end_date_previously_was
     dependents.each do |dependent|
-      dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+      latest_dependency = dependent.dependencies.order(end_date: :desc).first
+      if id == latest_dependency.id
+        delta = end_date - end_date_previously_was
+        dependent.update_columns(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+      end
     end
   end
 end
