@@ -16,7 +16,7 @@ class Todo < ApplicationRecord
 
   scope :of_project, ->(project_id) { where('project_id = ?', project_id) }
   scope :name_contains, ->(name) { where('lower(name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
-  scope :due, ->(date) { where(status: false).where("end_date <= ?", date) }
+  scope :due_date_before, ->(date) { where(status: false).where("end_date <= ?", date) }
 
   def self.search(query)
     scopes = []
