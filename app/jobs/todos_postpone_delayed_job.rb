@@ -1,4 +1,4 @@
-class PostponeDelayedTodosJob < ApplicationJob
+class TodosPostponeDelayedJob < ApplicationJob
   queue_as :default
 
   def perform(*args)

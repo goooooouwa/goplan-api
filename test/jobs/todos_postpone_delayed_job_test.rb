@@ -1,6 +1,6 @@
 require "test_helper"
 
-class PostponeDelayedTodosJobTest < ActiveJob::TestCase
+class TodosPostponeDelayedJobTest < ActiveJob::TestCase
   # test "the truth" do
   #   assert true
   # end
