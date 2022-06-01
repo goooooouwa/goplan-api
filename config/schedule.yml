@@ -1,7 +1,3 @@
 my_first_job_everyday_at_0001:
   cron: "1 0 * * *"
   class: "TodosPostponeDelayedJob"
-
-my_test_job_every_minute:
-  cron: "* * * * *"
-  class: "TodosPostponeDelayedJob"
