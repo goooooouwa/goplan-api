@@ -1,12 +1,12 @@
 class Todo < ApplicationRecord
   belongs_to :project
 
-  has_many :todo_dependents, class_name: 'TodoChild',
-                             foreign_key: 'todo_id',
+  has_many :todo_dependents, class_name: "TodoChild",
+                             foreign_key: "todo_id",
                              dependent: :destroy
 
-  has_many :todo_dependencies, class_name: 'TodoChild',
-                               foreign_key: 'child_id',
+  has_many :todo_dependencies, class_name: "TodoChild",
+                               foreign_key: "child_id",
                                dependent: :destroy
 
   has_many :dependents, through: :todo_dependents, source: :child
@@ -14,13 +14,16 @@ class Todo < ApplicationRecord
 
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents
 
-  scope :of_project, ->(project_id) { where('project_id = ?', project_id) }
-  scope :name_contains, ->(name) { where('lower(name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
+  scope :of_project, ->(project_id) { where("project_id = ?", project_id) }
+  scope :name_contains, ->(name) { where("lower(name) LIKE ?", "%" + Todo.sanitize_sql_like(name).downcase + "%") }
   scope :due_date_before, ->(date) { where(status: false).where("end_date <= ?", date) }
 
-  validate :end_date_cannot_before_start_date
+  validate :end_date_cannot_earlier_than_start_date
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependents_cannot_include_self
+
+  before_update :change_start_date_and_end_date, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
+  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date) / 1.days > 1 }
 
   def self.search(query)
     scopes = []
@@ -38,11 +41,9 @@ class Todo < ApplicationRecord
     Array(scopes).inject(self) { |o, a| o.send(*a) }
   end
 
-  before_update :change_end_date, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
-  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date) / 1.days > 1 }
-
   private
-  def end_date_cannot_before_start_date
+
+  def end_date_cannot_earlier_than_start_date
     if end_date < start_date
       errors.add(:end_date, "can't be earlier than start date")
     end
@@ -60,8 +61,9 @@ class Todo < ApplicationRecord
     end
   end
 
-  def change_end_date
-    self.end_date = Time.current
+  def change_start_date_and_end_date
+    self.start_date = Time.current if start_date > Time.current
+    self.end_date = Time.current if end_date > Time.current
   end
 
   def update_dependents_timeline
