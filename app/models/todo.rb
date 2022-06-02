@@ -18,6 +18,7 @@ class Todo < ApplicationRecord
   scope :name_contains, ->(name) { where('lower(name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
   scope :due_date_before, ->(date) { where(status: false).where("end_date <= ?", date) }
 
+  validate :end_date_cannot_before_start_date
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependents_cannot_include_self
 
@@ -41,6 +42,12 @@ class Todo < ApplicationRecord
   after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date) / 1.days > 1 }
 
   private
+  def end_date_cannot_before_start_date
+    if end_date < start_date
+      errors.add(:end_date, "can't be earlier than start date")
+    end
+  end
+
   def todo_dependencies_cannot_include_self
     if todo_dependencies.present? && todo_dependencies.select { |todo_dependency| todo_dependency.todo_id == id }.present?
       errors.add(:dependencies, "can't include self")
