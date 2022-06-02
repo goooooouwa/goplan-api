@@ -71,7 +71,7 @@ class Todo < ApplicationRecord
       latest_dependency = dependent.dependencies.order(end_date: :desc).first
       if id == latest_dependency.id
         delta = end_date - end_date_previously_was
-        dependent.update_columns(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+        dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
       end
     end
   end
