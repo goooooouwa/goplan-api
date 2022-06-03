@@ -16,6 +16,7 @@ gem "puma", "~> 4.3"
 gem "jbuilder"
 
 gem "devise"
+gem "omniauth"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"

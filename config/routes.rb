@@ -1,6 +1,7 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
+  devise_for :users
   resources :todos do
     member do
       put :dependencies, to: 'todos#update_dependencies'
