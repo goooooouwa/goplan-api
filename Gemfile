@@ -21,6 +21,7 @@ gem "jbuilder"
 
 gem "devise"
 gem "omniauth"
+gem "omniauth-rails_csrf_protection"
 gem "omniauth-apple", "~> 1.0"
 gem "omniauth-google-oauth2", "~> 1.0"
 gem "omniauth-wechat-oauth2", "~> 0.2.2"
