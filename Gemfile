@@ -17,6 +17,12 @@ gem "jbuilder"
 
 gem "devise"
 gem "omniauth"
+gem "omniauth-apple", "~> 1.0"
+gem "omniauth-google-oauth2", "~> 1.0"
+gem "omniauth-wechat-oauth2", "~> 0.2.2"
+gem 'omniauth-github', github: 'omniauth/omniauth-github', branch: 'master'
+
+# gem "doorkeeper", "~> 5.5"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
@@ -55,3 +61,4 @@ end
 gem "sidekiq", "~> 6.4"
 
 gem "sidekiq-cron", "~> 1.4"
+
