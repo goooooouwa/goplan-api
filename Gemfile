@@ -12,6 +12,10 @@ gem 'pg'
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 4.3"
 
+# Workaround to avoid "already initialized constant errors" with net/protocol
+# ref: "already initialized constant errors" with net/protocol
+gem "net-http"
+
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 

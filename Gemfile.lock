@@ -133,6 +133,8 @@ GEM
     msgpack (1.5.1)
     multi_json (1.15.0)
     multi_xml (0.6.0)
+    net-http (0.2.2)
+      uri
     net-imap (0.2.3)
       digest
       net-protocol
@@ -260,6 +262,7 @@ GEM
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.1.0)
+    uri (0.11.0)
     warden (1.2.9)
       rack (>= 2.0.9)
     websocket-driver (0.7.5)
@@ -278,6 +281,7 @@ DEPENDENCIES
   devise
   dotenv-rails
   jbuilder
+  net-http
   omniauth
   omniauth-apple (~> 1.0)
   omniauth-github!
