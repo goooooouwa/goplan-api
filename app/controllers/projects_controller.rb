@@ -1,4 +1,5 @@
 class ProjectsController < ApplicationController
+  before_action :doorkeeper_authorize!
   before_action :set_project, only: %i[show update destroy]
 
   # GET /projects
