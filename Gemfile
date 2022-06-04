@@ -73,6 +73,7 @@ gem "omniauth-google-oauth2", "~> 1.0"
 gem "omniauth-wechat-oauth2", "~> 0.2.2"
 gem 'omniauth-github', github: 'omniauth/omniauth-github', branch: 'master'
 
+gem 'activeadmin'
 gem "doorkeeper", "~> 5.5"
 
 gem "sidekiq", "~> 6.4"
