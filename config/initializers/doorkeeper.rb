@@ -16,11 +16,7 @@ Doorkeeper.configure do
   # every time somebody will try to access the admin web interface.
   
   admin_authenticator do
-    if current_user
-      head :forbidden unless current_user.admin?
-    else
-      redirect_to sign_in_url
-    end
+    current_admin_user || warden.authenticate!(scope: :admin_user)
   end
 
   # You can use your own model classes if you need to extend (or even override) default
