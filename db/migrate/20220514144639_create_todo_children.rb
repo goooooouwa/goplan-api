@@ -1,4 +1,4 @@
-class CreateTodoChildren < ActiveRecord::Migration[7.0]
+class CreateTodoChildren < ActiveRecord::Migration[6.1]
   def change
     create_table :todo_children do |t|
       t.references :todo, null: false, foreign_key: true
