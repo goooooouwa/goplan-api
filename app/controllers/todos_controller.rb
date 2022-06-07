@@ -1,5 +1,5 @@
 class TodosController < ApplicationController
-  before_action :doorkeeper_authorize!
+  before_action -> { doorkeeper_authorize! :write }
   before_action :set_todo, only: %i[show update update_dependencies destroy]
 
   # GET /todos
