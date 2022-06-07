@@ -112,6 +112,8 @@ GEM
       warden (~> 1.2.3)
     doorkeeper (5.5.4)
       railties (>= 5)
+    doorkeeper-jwt (0.4.1)
+      jwt (>= 2.1)
     dotenv (2.7.6)
     dotenv-rails (2.7.6)
       dotenv (= 2.7.6)
@@ -371,6 +373,7 @@ DEPENDENCIES
   capybara (>= 3.26)
   devise
   doorkeeper (~> 5.5)
+  doorkeeper-jwt
   dotenv-rails
   jbuilder (~> 2.7)
   listen (~> 3.3)
