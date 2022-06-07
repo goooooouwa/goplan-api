@@ -1,8 +1,9 @@
-class CredentialsController < ApplicationController
-  respond_to :json
+class CredentialsController < ApiController
+  before_action -> { doorkeeper_authorize! :write }
 
   # GET /me.json
   def me
-    respond_with current_resource_owner
+    @user = current_resource_owner
+    render "users/show"
   end
 end
