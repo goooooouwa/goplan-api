@@ -1,5 +1,6 @@
 class Todo < ApplicationRecord
   belongs_to :project
+  delegate :user, :to => :project, :allow_nil => true
 
   has_many :todo_dependents, class_name: "TodoChild",
                              foreign_key: "todo_id",

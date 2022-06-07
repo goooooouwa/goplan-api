@@ -85,9 +85,11 @@ ActiveRecord::Schema.define(version: 2022_06_04_013332) do
 
   create_table "projects", force: :cascade do |t|
     t.string "name"
-    t.datetime "target_date", precision: 6
+    t.datetime "target_date"
+    t.bigint "user_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_projects_on_user_id"
   end
 
   create_table "todo_children", force: :cascade do |t|
@@ -104,8 +106,8 @@ ActiveRecord::Schema.define(version: 2022_06_04_013332) do
     t.string "name"
     t.text "description"
     t.float "time_span"
-    t.datetime "start_date", precision: 6
-    t.datetime "end_date", precision: 6
+    t.datetime "start_date"
+    t.datetime "end_date"
     t.boolean "repeat"
     t.string "repeat_period"
     t.integer "repeat_times"
@@ -136,6 +138,7 @@ ActiveRecord::Schema.define(version: 2022_06_04_013332) do
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
+  add_foreign_key "projects", "users"
   add_foreign_key "todo_children", "todos"
   add_foreign_key "todo_children", "todos", column: "child_id"
   add_foreign_key "todos", "projects"

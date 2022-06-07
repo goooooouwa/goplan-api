@@ -519,7 +519,7 @@ Doorkeeper::JWT.configure do
   # If you want to use RS* encoding specify the path to the RSA key to use for
   # signing. If you specify a `secret_key_path` it will be used instead of
   # `secret_key`.
-  # secret_key_path File.join('path', 'to', 'file.pem')
+  secret_key_path File.join('path', 'to', 'file.pem')
 
   # Specify encryption type (https://github.com/progrium/ruby-jwt). Defaults to
   # `nil`.

@@ -1,10 +1,10 @@
-class TodosController < ApplicationController
+class TodosController < ApiController
   before_action -> { doorkeeper_authorize! :write }
   before_action :set_todo, only: %i[show update update_dependencies destroy]
 
   # GET /todos
   def index
-    @todos = Todo.search(params)
+    @todos = current_resource_owner.todos.search(params)
   end
 
   # GET /todos/1
@@ -50,6 +50,7 @@ class TodosController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_todo
     @todo = Todo.find(params[:id])
+    redirect_to root_path if current_resource_owner != @todo.project.user
   end
 
   # Only allow a list of trusted parameters through.
