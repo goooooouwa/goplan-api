@@ -16,7 +16,7 @@ class Todo < ApplicationRecord
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents
 
   scope :of_project, ->(project_id) { where("project_id = ?", project_id) }
-  scope :name_contains, ->(name) { where("lower(name) LIKE ?", "%" + Todo.sanitize_sql_like(name).downcase + "%") }
+  scope :name_contains, ->(name) { where("lower(todos.name) LIKE ?", "%" + Todo.sanitize_sql_like(name).downcase + "%") }
   scope :due_date_before, ->(date) { where(status: false).where("end_date <= ?", date) }
 
   validate :end_date_cannot_earlier_than_start_date

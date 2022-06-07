@@ -2,7 +2,7 @@ class Project < ApplicationRecord
   has_many :todos
   belongs_to :user
 
-  scope :name_contains, ->(name) { where('lower(name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
+  scope :name_contains, ->(name) { where('lower(projects.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
 
   def self.search(query)
     scopes = []
