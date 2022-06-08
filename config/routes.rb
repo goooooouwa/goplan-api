@@ -11,7 +11,8 @@ Rails.application.routes.draw do
     end
   end
   resources :projects
-  get :me, to: 'credentials#me'
+  get :me, to: 'account#show'
+  put :me, to: 'account#update'
 
   mount Sidekiq::Web => "/sidekiq" # mount Sidekiq::Web in your Rails app
 
