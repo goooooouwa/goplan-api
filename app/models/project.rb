@@ -4,6 +4,8 @@ class Project < ApplicationRecord
 
   scope :name_contains, ->(name) { where('lower(projects.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
 
+  validates_presence_of :name
+
   def self.search(query)
     scopes = []
     scopes.push([:name_contains, query[:name]]) if query.try(:[], :name)
