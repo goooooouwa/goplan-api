@@ -1,6 +1,6 @@
 class Todo < ApplicationRecord
   belongs_to :project
-  delegate :user, :to => :project, :allow_nil => true
+  delegate :user, to: :project, allow_nil: true
 
   has_many :todo_dependents, class_name: "TodoChild",
                              foreign_key: "todo_id",
@@ -24,11 +24,13 @@ class Todo < ApplicationRecord
   validates_presence_of :end_date
   validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
+  validate :start_date_cannot_earlier_than_dependencies_end_date, on: :update
+  validate :end_date_cannot_later_than_dependents_start_date, on: :update
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependents_cannot_include_self
 
   before_update :change_start_date_and_end_date, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
-  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date) / 1.days > 1 }
+  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date).abs / 1.days > 1 }
 
   def self.search(query)
     scopes = []
@@ -63,6 +65,18 @@ class Todo < ApplicationRecord
   def todo_dependents_cannot_include_self
     if todo_dependents.present? && todo_dependents.select { |todo_dependent| todo_dependent.child_id == id }.present?
       errors.add(:dependents, "can't include self")
+    end
+  end
+
+  def start_date_cannot_earlier_than_dependencies_end_date
+    if dependencies.present? && start_date < dependencies.order(end_date: :desc).first.end_date
+      errors.add(:start_date, "can't be earlier than dependencies' end date")
+    end
+  end
+
+  def end_date_cannot_later_than_dependents_start_date
+    if dependents.present? && end_date > dependents.order(:start_date).first.start_date
+      errors.add(:end_date, "can't be later than dependents' start date")
     end
   end
 
