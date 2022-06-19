@@ -25,7 +25,7 @@ class Todo < ApplicationRecord
   validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date, on: :update
-  validate :end_date_cannot_later_than_dependents_start_date, on: :update
+  validate :end_date_cannot_later_than_dependents_start_date, on: :update, unless: Proc.new { |todo| todo.will_save_change_to_attribute?(:end_date)}
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependents_cannot_include_self
 
