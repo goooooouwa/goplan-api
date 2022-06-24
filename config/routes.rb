@@ -8,7 +8,7 @@ Rails.application.routes.draw do
     sessions: 'users/sessions',
     omniauth_callbacks: 'users/omniauth_callbacks'
   }
-  devise_scope :users, do
+  devise_scope :user do
     delete "users/sign_out_with_token", to: "users/sessions#destroy_with_token", as: :destroy_user_session_with_token
   end
 
