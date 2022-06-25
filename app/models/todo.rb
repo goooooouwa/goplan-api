@@ -25,9 +25,11 @@ class Todo < ApplicationRecord
   validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date, on: :update
-  validate :end_date_cannot_later_than_dependents_start_date, on: :update, unless: Proc.new { |todo| todo.will_save_change_to_attribute?(:end_date)}
+  validate :end_date_cannot_later_than_dependents_start_date, on: :update, unless: Proc.new { |todo| todo.will_save_change_to_attribute?(:end_date) }
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependents_cannot_include_self
+  validate :cannot_mark_as_done_if_dependencies_not_done, on: :create
+  validate :cannot_mark_as_done_if_dependencies_not_done, on: :update, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
 
   before_update :change_start_date_and_end_date, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
   after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date).abs / 1.days > 1 }
@@ -65,6 +67,13 @@ class Todo < ApplicationRecord
   def todo_dependents_cannot_include_self
     if todo_dependents.present? && todo_dependents.select { |todo_dependent| todo_dependent.child_id == id }.present?
       errors.add(:dependents, "can't include self")
+    end
+  end
+
+  def cannot_mark_as_done_if_dependencies_not_done
+    error_message = "can't mark as done since one or more dependencies are still open"
+    if todo_dependencies.present? && Todo.find(todo_dependencies.map(&:todo_id)).select { |dependency| dependency.status == false }.present?
+      errors.add(:status, error_message)
     end
   end
 
