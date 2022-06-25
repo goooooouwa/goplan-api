@@ -1,10 +1,8 @@
 <div>
-  <h1>
-    Welcome to GoPlan: <%= current_user.name || current_user.email %>.
-    Visit <%= link_to "GoPlan Web", ENV['GOPLAN_WEB_BASE_URL'], target: "_blank" %>.<br />
-  </h1>
-
   <h2>
-    <%= link_to "Sign out", destroy_user_session_path, method: :delete %>.
-  </h2>
+    Welcome: <%= current_user.name || current_user.email %>
+  <h2>
+  <h1>
+    Open <%= link_to "GoPlan Web", ENV['GOPLAN_WEB_BASE_URL'], target: "_blank" %>
+  </h1>
 </div>

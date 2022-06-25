@@ -1,0 +1,9 @@
+<div>
+  <h2>
+    Currently signed in as: <%= current_user.name || current_user.email %>
+  </h2>
+
+  <h1>
+    <%= link_to "Sign out", destroy_user_session_path, method: :delete %>
+  </h1>
+</div>

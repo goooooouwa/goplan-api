@@ -10,12 +10,13 @@ Rails.application.routes.draw do
 
   resources :todos do
     member do
-      put :dependencies, to: 'todos#update_dependencies'
+      put 'dependencies', to: 'todos#update_dependencies'
     end
   end
   resources :projects
-  get :me, to: 'account#show'
-  put :me, to: 'account#update'
+  get 'profile', to: 'users#show'
+  get 'me', to: 'account#show'
+  put 'me', to: 'account#update'
 
   mount Sidekiq::Web => "/sidekiq" # mount Sidekiq::Web in your Rails app
 
