@@ -4,7 +4,7 @@ class TodosController < ApiController
 
   # GET /todos
   def index
-    @todos = current_resource_owner.todos.search(params)
+    @todos = current_resource_owner.todos.search(params).order(:status, created_at: :desc)
   end
 
   # GET /todos/1
