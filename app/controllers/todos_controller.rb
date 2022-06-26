@@ -7,6 +7,13 @@ class TodosController < ApiController
     @todos = current_resource_owner.todos.search(params).order(:status, created_at: :desc)
   end
 
+  # GET /todos/graph
+  def graph
+    todos = current_resource_owner.todos.search(params)
+    top_level_wip_todos = todos.top_level_wip
+    done_todos = todos.done
+  end
+
   # GET /todos/1
   def show; end
 

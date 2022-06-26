@@ -19,6 +19,8 @@ class Todo < ApplicationRecord
   scope :name_contains, lambda { |name|
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
+  scope :done, -> { where(status: true) }
+  scope :top_level_wip, -> { where.not(id: Todo.left_outer_joins(:dependencies).where(dependencies: { status: false }).or(Todo.where(status: true)).map(&:id)) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name

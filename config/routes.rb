@@ -9,6 +9,9 @@ Rails.application.routes.draw do
   }
 
   resources :todos do
+    collection do
+      get 'graph', to: 'todos#graph'
+    end
     member do
       put 'dependencies', to: 'todos#update_dependencies'
     end
