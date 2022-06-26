@@ -65,7 +65,9 @@ class Todo < ApplicationRecord
   end
 
   def todo_dependencies_cannot_include_self
-    if todo_dependencies.present? && todo_dependencies.select do |todo_dependency|
+    return unless todo_dependencies.present?
+
+    if todo_dependencies.select do |todo_dependency|
          todo_dependency.todo_id == id
        end.present?
       errors.add(:dependencies, "can't include self")
@@ -73,23 +75,27 @@ class Todo < ApplicationRecord
   end
 
   def todo_dependencies_cannot_include_deps_dependencies
-    if todo_dependencies.present?
-      dependencies = Todo.find(todo_dependencies.map(&:todo_id))
-      deps_dependencies = dependencies.map { |dependency| dependency.dependencies }.flatten.uniq
-      intersection = deps_dependencies.filter { |deps_dependency| dependencies.include?(deps_dependency) }
-      errors.add(:dependencies, "can't include dependency's dependencies") if intersection.present?
-    end
+    return unless todo_dependencies.present?
+
+    dependencies = Todo.find(todo_dependencies.map(&:todo_id))
+    deps_dependencies = dependencies.map { |dependency| dependency.dependencies }.flatten.uniq
+    intersection = deps_dependencies.filter { |deps_dependency| dependencies.include?(deps_dependency) }
+    errors.add(:dependencies, "can't include dependency's dependencies") if intersection.present?
   end
 
   def todo_dependents_cannot_include_self
-    if todo_dependents.present? && todo_dependents.select { |todo_dependent| todo_dependent.child_id == id }.present?
+    return unless todo_dependents.present?
+
+    if todo_dependents.select { |todo_dependent| todo_dependent.child_id == id }.present?
       errors.add(:dependents, "can't include self")
     end
   end
 
   def cannot_mark_as_done_if_dependencies_not_done
+    return unless todo_dependencies.present?
+
     error_message = "can't mark as done since one or more dependencies are still open"
-    if todo_dependencies.present? && Todo.find(todo_dependencies.map(&:todo_id)).select do |dependency|
+    if Todo.find(todo_dependencies.map(&:todo_id)).select do |dependency|
          dependency.status == false
        end.present?
       errors.add(:status, error_message)
@@ -97,13 +103,17 @@ class Todo < ApplicationRecord
   end
 
   def start_date_cannot_earlier_than_dependencies_end_date
-    if todo_dependencies.present? && start_date < Todo.find(todo_dependencies.map(&:todo_id)).order(end_date: :desc).first.end_date
+    return unless todo_dependencies.present?
+
+    if start_date < Todo.find(todo_dependencies.map(&:todo_id)).order(end_date: :desc).first.end_date
       errors.add(:start_date, "can't be earlier than dependencies' end date")
     end
   end
 
   def end_date_cannot_later_than_dependents_start_date
-    if todo_dependents.present? && end_date > Todo.find(todo_dependents.map(&:child_id)).order(:start_date).first.start_date
+    return unless todo_dependents.present?
+
+    if end_date > Todo.find(todo_dependents.map(&:child_id)).order(:start_date).first.start_date
       errors.add(:end_date, "can't be later than dependents' start date")
     end
   end
