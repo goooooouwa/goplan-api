@@ -105,7 +105,7 @@ class Todo < ApplicationRecord
   def start_date_cannot_earlier_than_dependencies_end_date
     return unless todo_dependencies.present?
 
-    if start_date < Todo.find(todo_dependencies.map(&:todo_id)).order(end_date: :desc).first.end_date
+    if start_date < Todo.find(todo_dependencies.map(&:todo_id)).max_by(&:end_date).end_date
       errors.add(:start_date, "can't be earlier than dependencies' end date")
     end
   end
@@ -113,7 +113,7 @@ class Todo < ApplicationRecord
   def end_date_cannot_later_than_dependents_start_date
     return unless todo_dependents.present?
 
-    if end_date > Todo.find(todo_dependents.map(&:child_id)).order(:start_date).first.start_date
+    if end_date > Todo.find(todo_dependents.map(&:child_id)).min_by(&:start_date).start_date
       errors.add(:end_date, "can't be later than dependents' start date")
     end
   end

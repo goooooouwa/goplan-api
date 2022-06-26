@@ -9,14 +9,13 @@ RSpec.describe Todo, type: :model do
   end
 
   it 'can create todo with dependencies' do
-    todo = create(:todo)
-    todo.dependencies << [todo1, todo2]
-    expect(todo.dependencies.count).to eq(2)
+    todo = create(:todo_with_future_start_and_end_date, todo_dependencies_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
+    expect(todo.todo_dependencies.count).to eq(2)
   end
 
   it 'can not create todo that depends on itself' do
-    todo = build(:todo)
-    todo.dependencies = [todo]
+    todo = create(:todo)
+    todo.todo_dependencies_attributes = [{ todo_id: todo.id}]
     expect(todo).to_not be_valid
     expect(todo.errors[:dependencies]).to include("can't include self")
   end
@@ -29,15 +28,14 @@ RSpec.describe Todo, type: :model do
 
   it 'can not update todo with start date earlier than dependencies end date' do
     todo = create(:todo_with_very_early_start_date)
-    todo.dependencies = FactoryBot.create_list(:todo, 5)
+    todo.todo_dependencies_attributes = FactoryBot.create_list(:todo, 5).map{ |todo| { todo_id: todo.id }}
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
     expect(todo.errors[:start_date]).to include("can't be earlier than dependencies' end date")
   end
 
-  it 'can not update todo with end date later than dependents start date' do
-    todo = create(:todo_with_very_late_end_date)
-    todo.dependents = FactoryBot.create_list(:todo, 5)
+  it 'can not create todo with end date later than dependents start date' do
+    todo = build(:todo_with_very_late_end_date, todo_dependents_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
     expect(todo.errors[:end_date]).to include("can't be later than dependents' start date")
