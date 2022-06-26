@@ -27,7 +27,7 @@ class Todo < ApplicationRecord
   validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date
-  validate :end_date_cannot_later_than_dependents_start_date
+  validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependencies_cannot_include_deps_dependencies
   validate :todo_dependents_cannot_include_self
@@ -39,7 +39,7 @@ class Todo < ApplicationRecord
                                                        todo.will_save_change_to_attribute?(:status, to: true)
                                                      }
   after_update :update_dependents_timeline, if: proc { |todo|
-                                                  todo.saved_change_to_end_date? && (todo.end_date_previously_was - todo.end_date).abs / 1.days > 1
+                                                  todo.saved_change_to_end_date?
                                                 }
 
   def self.search(query)
@@ -114,11 +114,13 @@ class Todo < ApplicationRecord
   end
 
   def update_dependents_timeline
-    dependents.each do |dependent|
-      latest_dependency = dependent.dependencies.order(end_date: :desc).first
-      if id == latest_dependency.id
-        delta = end_date - end_date_previously_was
-        dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+    delta = end_date - end_date_previously_was
+    if (delta.abs / 1.days) > 1
+      dependents.each do |dependent|
+        latest_dependency = dependent.dependencies.order(end_date: :desc).first
+        if id == latest_dependency.id
+          dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+        end
       end
     end
   end
