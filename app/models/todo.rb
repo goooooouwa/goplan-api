@@ -2,12 +2,12 @@ class Todo < ApplicationRecord
   belongs_to :project
   delegate :user, to: :project, allow_nil: true
 
-  has_many :todo_dependents, class_name: "TodoChild",
-                             foreign_key: "todo_id",
+  has_many :todo_dependents, class_name: 'TodoChild',
+                             foreign_key: 'todo_id',
                              dependent: :destroy
 
-  has_many :todo_dependencies, class_name: "TodoChild",
-                               foreign_key: "child_id",
+  has_many :todo_dependencies, class_name: 'TodoChild',
+                               foreign_key: 'child_id',
                                dependent: :destroy
 
   has_many :dependents, through: :todo_dependents, source: :child
@@ -15,9 +15,11 @@ class Todo < ApplicationRecord
 
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents
 
-  scope :of_project, ->(project_id) { where("project_id = ?", project_id) }
-  scope :name_contains, ->(name) { where("lower(todos.name) LIKE ?", "%" + Todo.sanitize_sql_like(name).downcase + "%") }
-  scope :due_date_before, ->(date) { where(status: false).where("end_date <= ?", date) }
+  scope :of_project, ->(project_id) { where('project_id = ?', project_id) }
+  scope :name_contains, lambda { |name|
+                          where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
+                        }
+  scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
   validates_presence_of :start_date
@@ -25,14 +27,22 @@ class Todo < ApplicationRecord
   validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date, on: :update
-  validate :end_date_cannot_later_than_dependents_start_date, on: :update, unless: Proc.new { |todo| todo.will_save_change_to_attribute?(:end_date) }
+  validate :end_date_cannot_later_than_dependents_start_date, on: :update, unless: proc { |todo|
+                                                                                     todo.will_save_change_to_end_date?
+                                                                                   }
   validate :todo_dependencies_cannot_include_self
+  validate :todo_dependencies_cannot_include_deps_dependencies
   validate :todo_dependents_cannot_include_self
-  validate :cannot_mark_as_done_if_dependencies_not_done, on: :create
-  validate :cannot_mark_as_done_if_dependencies_not_done, on: :update, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
+  validate :cannot_mark_as_done_if_dependencies_not_done, if: proc { |todo|
+                                                                todo.will_save_change_to_attribute?(:status, to: true)
+                                                              }
 
-  before_update :change_start_date_and_end_date, if: Proc.new { |todo| todo.will_save_change_to_attribute?(:status, to: true) }
-  after_update :update_dependents_timeline, if: Proc.new { |todo| todo.saved_change_to_attribute?(:end_date) && (todo.end_date_previously_was - todo.end_date).abs / 1.days > 1 }
+  before_update :change_start_date_and_end_date, if: proc { |todo|
+                                                       todo.will_save_change_to_attribute?(:status, to: true)
+                                                     }
+  after_update :update_dependents_timeline, if: proc { |todo|
+                                                  todo.saved_change_to_end_date? && (todo.end_date_previously_was - todo.end_date).abs / 1.days > 1
+                                                }
 
   def self.search(query)
     scopes = []
@@ -53,14 +63,23 @@ class Todo < ApplicationRecord
   private
 
   def end_date_cannot_earlier_than_start_date
-    if end_date < start_date
-      errors.add(:end_date, "can't be earlier than start date")
-    end
+    errors.add(:end_date, "can't be earlier than start date") if end_date < start_date
   end
 
   def todo_dependencies_cannot_include_self
-    if todo_dependencies.present? && todo_dependencies.select { |todo_dependency| todo_dependency.todo_id == id }.present?
+    if todo_dependencies.present? && todo_dependencies.select do |todo_dependency|
+         todo_dependency.todo_id == id
+       end.present?
       errors.add(:dependencies, "can't include self")
+    end
+  end
+
+  def todo_dependencies_cannot_include_deps_dependencies
+    if todo_dependencies.present?
+      dependencies = Todo.find(todo_dependencies.map(&:todo_id))
+      deps_dependencies = dependencies.map { |dependency| dependency.dependencies }.flatten.uniq
+      intersection = deps_dependencies.filter { |deps_dependency| dependencies.include?(deps_dependency) }
+      errors.add(:dependencies, "can't include dependency's dependencies") if intersection.present?
     end
   end
 
@@ -72,7 +91,9 @@ class Todo < ApplicationRecord
 
   def cannot_mark_as_done_if_dependencies_not_done
     error_message = "can't mark as done since one or more dependencies are still open"
-    if todo_dependencies.present? && Todo.find(todo_dependencies.map(&:todo_id)).select { |dependency| dependency.status == false }.present?
+    if todo_dependencies.present? && Todo.find(todo_dependencies.map(&:todo_id)).select do |dependency|
+         dependency.status == false
+       end.present?
       errors.add(:status, error_message)
     end
   end
