@@ -19,9 +19,12 @@ class Todo < ApplicationRecord
   scope :name_contains, lambda { |name|
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
+  scope :has_dependent, ->(dependent_id) { joins(:dependents).where('dependents.id' => dependent_id) }
   scope :done, -> { where(status: true) }
   scope :undone, -> { where(status: false) }
-  scope :top_level_undone, -> { where(status: false).where.not(id: Todo.left_outer_joins(:dependencies).where(status: false, dependencies: { status: false })) }
+  scope :top_level_undone, lambda {
+                             where(status: false).where.not(id: Todo.left_outer_joins(:dependencies).where(status: false, dependencies: { status: false }))
+                           }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
@@ -61,11 +64,11 @@ class Todo < ApplicationRecord
     Array(scopes).inject(self) { |o, a| o.send(*a) }
   end
 
-  private
-
-  def with_deps
-
+  def first_appearance_of_dependent_in_todos?(dependent, todos)
+    return id == todos.has_dependent(dependent.id).order(:created_at).limit(1).first.try(:id)
   end
+
+  private
 
   def end_date_cannot_earlier_than_start_date
     errors.add(:end_date, "can't be earlier than start date") if end_date < start_date
