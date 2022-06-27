@@ -10,8 +10,9 @@ class TodosController < ApiController
   # GET /todos/graph
   def graph
     todos = current_resource_owner.todos.search(params)
-    top_level_wip_todos = todos.top_level_wip
+    top_level_wip_todos_with_deps = todos.top_level_wip.with_deps
     done_todos = todos.done
+    @todos = top_level_wip_todos_with_deps + done_todos
   end
 
   # GET /todos/1

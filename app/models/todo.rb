@@ -20,7 +20,7 @@ class Todo < ApplicationRecord
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
   scope :done, -> { where(status: true) }
-  scope :top_level_wip, -> { where.not(id: Todo.left_outer_joins(:dependencies).where(dependencies: { status: false }).or(Todo.where(status: true)).map(&:id)) }
+  scope :top_level_wip, -> { where(status: false).not(id: Todo.left_outer_joins(:dependencies).where(dependencies: { status: false }).or(Todo.where(status: true)).map(&:id)) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
@@ -61,6 +61,10 @@ class Todo < ApplicationRecord
   end
 
   private
+
+  def with_deps
+
+  end
 
   def end_date_cannot_earlier_than_start_date
     errors.add(:end_date, "can't be earlier than start date") if end_date < start_date
