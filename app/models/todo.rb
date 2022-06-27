@@ -20,7 +20,8 @@ class Todo < ApplicationRecord
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
   scope :done, -> { where(status: true) }
-  scope :top_level_wip, -> { where(status: false).not(id: Todo.left_outer_joins(:dependencies).where(dependencies: { status: false }).or(Todo.where(status: true)).map(&:id)) }
+  scope :undone, -> { where(status: false) }
+  scope :top_level_undone, -> { where(status: false).where.not(id: Todo.left_outer_joins(:dependencies).where(status: false, dependencies: { status: false })) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
