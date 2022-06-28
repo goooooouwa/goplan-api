@@ -13,7 +13,7 @@ class Todo < ApplicationRecord
   has_many :dependents, through: :todo_dependents, source: :child
   has_many :dependencies, through: :todo_dependencies, source: :todo
 
-  accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents
+  accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents, allow_destroy: true
 
   scope :of_project, ->(project_id) { where('todos.project_id = ?', project_id) }
   scope :name_contains, lambda { |name|

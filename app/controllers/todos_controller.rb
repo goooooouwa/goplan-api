@@ -55,12 +55,12 @@ class TodosController < ApiController
 
   def build_todo_dependencies_attributes(todo, dependencies_attributes)
     todo_dependencies_attributes = []
-
+    
     to_be_destroyed = todo.todo_dependencies.where.not(todo_id: dependencies_attributes)
     to_be_destroyed.each do |todo_dependency|
       todo_dependencies_attributes << {
         id: todo_dependency.id,
-        _destory: '1'
+        _destroy: '1'
       }
     end
 
