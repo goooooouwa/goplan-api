@@ -9,10 +9,7 @@ class TodosController < ApiController
 
   # GET /todos/graph
   def graph
-    todos = current_resource_owner.todos.search(params)
-    top_level_undone = todos.top_level_undone
-    done_todos = todos.done
-    @todos = top_level_undone_todos_with_deps + done_todos
+    @todos = current_resource_owner.todos
   end
 
   # GET /todos/1
