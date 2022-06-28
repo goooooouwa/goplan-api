@@ -22,9 +22,10 @@ class Todo < ApplicationRecord
   scope :has_dependent, ->(dependent_id) { joins(:dependents).where('dependents.id' => dependent_id) }
   scope :done, -> { where(status: true) }
   scope :undone, -> { where(status: false) }
-  scope :top_level_undone, lambda {
-                             where(status: false).where.not(id: Todo.left_outer_joins(:dependencies).where(status: false, dependencies: { status: false }))
-                           }
+  scope :unactionable, lambda {
+                         left_outer_joins(:dependencies).where(status: false, dependencies: { status: false })
+                       }
+  scope :actionable, -> { where.not(id: unactionable) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
