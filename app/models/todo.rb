@@ -36,8 +36,9 @@ class Todo < ApplicationRecord
   validate :start_date_cannot_earlier_than_dependencies_end_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :todo_dependencies_cannot_include_self
-  validate :todo_dependencies_cannot_include_deps_dependencies
   validate :todo_dependents_cannot_include_self
+  validate :todo_dependencies_cannot_include_deps_dependencies
+  validate :todo_dependents_cannot_include_depts_dependents
   validate :cannot_mark_as_done_if_dependencies_not_done, if: proc { |todo|
                                                                 todo.will_save_change_to_attribute?(:status, to: true)
                                                               }
@@ -94,6 +95,15 @@ class Todo < ApplicationRecord
     errors.add(:dependencies, "can't add dependency's dependencies") if intersection.present?
   end
 
+  def todo_dependents_cannot_include_depts_dependents
+    return unless todo_dependents.present?
+
+    dependents = Todo.find(todo_dependents.map(&:todo_id))
+    deps_dependents = dependents.map { |dependent| dependent.dependents }.flatten.uniq
+    intersection = deps_dependents.filter { |deps_dependent| dependents.include?(deps_dependent) }
+    errors.add(:dependents, "can't add dependent's dependents") if intersection.present?
+  end
+  
   def todo_dependents_cannot_include_self
     return unless todo_dependents.present?
 
