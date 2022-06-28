@@ -9,7 +9,7 @@ class TodosController < ApiController
 
   # GET /todos/dependents
   def dependents
-    @todos = current_resource_owner.todos
+    @todos = current_resource_owner.todos.search(params)
   end
 
   # GET /todos/1

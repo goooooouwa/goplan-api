@@ -15,7 +15,7 @@ class Todo < ApplicationRecord
 
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents
 
-  scope :of_project, ->(project_id) { where('project_id = ?', project_id) }
+  scope :of_project, ->(project_id) { where('todos.project_id = ?', project_id) }
   scope :name_contains, lambda { |name|
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
