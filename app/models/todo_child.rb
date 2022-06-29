@@ -3,9 +3,9 @@ class TodoChild < ApplicationRecord
   belongs_to :child, class_name: 'Todo', optional: true
   validates_uniqueness_of :child_id, :scope => :todo_id
   validates_uniqueness_of :todo_id, :scope => :child_id
-  validate :todo_child_cannot_include_self
-  validate :todo_cannot_be_child_dependencies_dependency
-  validate :child_cannot_be_dependents_dependent
+  validate :todo_child_cannot_include_self, unless: -> { child_id.nil? || todo_id.nil?  }
+  validate :todo_cannot_be_child_dependencies_dependency, unless: -> { child_id.nil? || todo_id.nil?  }
+  validate :child_cannot_be_dependents_dependent, unless: -> { child_id.nil? || todo_id.nil?  }
 
   private
   

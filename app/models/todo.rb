@@ -39,16 +39,10 @@ class Todo < ApplicationRecord
   validate :todo_dependents_cannot_include_self
   validate :todo_dependencies_cannot_include_deps_dependencies
   validate :todo_dependents_cannot_include_depts_dependents
-  validate :cannot_mark_as_done_if_dependencies_not_done, if: proc { |todo|
-                                                                todo.will_save_change_to_attribute?(:status, to: true)
-                                                              }
+  validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  before_update :change_start_date_and_end_date, if: proc { |todo|
-                                                       todo.will_save_change_to_attribute?(:status, to: true)
-                                                     }
-  after_update :update_dependents_timeline, if: proc { |todo|
-                                                  todo.saved_change_to_end_date?
-                                                }
+  before_update :change_start_date_and_end_date, if: -> { will_save_change_to_attribute?(:status, to: true) }
+  after_update :update_dependents_timeline, if: -> { saved_change_to_end_date? }
 
   def self.search(query)
     scopes = []
