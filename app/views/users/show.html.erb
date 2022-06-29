@@ -1,6 +1,6 @@
 <div>
   <h1>
-    Currently signed in as: <%= current_user.name || current_user.email %>.
+    Signed in as: <%= current_user.name || current_user.email %>.
     <%= link_to "Sign out", destroy_user_session_path, method: :delete %>
   </h1>
   <h3>
