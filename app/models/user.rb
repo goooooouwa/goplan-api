@@ -34,7 +34,7 @@ class User < ApplicationRecord
   def self.new_with_session(params, session)
     super.tap do |user|
       if (data = session['devise.oauth.data'] && session['devise.oauth.data']['info']) && user.email.blank?
-        user.email = data['email']
+        user.email = data['info']['email']
       end
     end
   end
