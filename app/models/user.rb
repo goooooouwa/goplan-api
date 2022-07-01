@@ -3,7 +3,7 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
-         :omniauthable, omniauth_providers: %i[github]
+         :omniauthable, omniauth_providers: [:github, :wechat, :google_oauth2]
 
   has_many :access_grants,
            class_name: 'Doorkeeper::AccessGrant',
