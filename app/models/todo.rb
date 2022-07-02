@@ -20,12 +20,12 @@ class Todo < ApplicationRecord
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
   scope :has_dependent, ->(dependent_id) { joins(:dependents).where('dependents.id' => dependent_id) }
+  scope :has_dependency, ->(dependency_id) { joins(:dependencies).where('dependencies.id' => dependency_id) }
   scope :done, -> { where(status: true) }
   scope :undone, -> { where(status: false) }
-  scope :unactionable, lambda {
-                         left_outer_joins(:dependencies).where(status: false, dependencies: { status: false })
-                       }
+  scope :unactionable, -> { left_outer_joins(:dependencies).where(status: false, dependencies: { status: false }) }
   scope :actionable, -> { where.not(id: unactionable) }
+  scope :childless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
@@ -57,6 +57,10 @@ class Todo < ApplicationRecord
 
   def self.send_chain(scopes)
     Array(scopes).inject(self) { |o, a| o.send(*a) }
+  end
+
+  def first_appearance_of_dependency_in_todos?(dependency, todos)
+    return id == todos.has_dependency(dependency.id).order(:created_at).limit(1).first.try(:id)
   end
 
   def first_appearance_of_dependent_in_todos?(dependent, todos)

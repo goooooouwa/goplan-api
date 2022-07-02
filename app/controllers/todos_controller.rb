@@ -7,6 +7,11 @@ class TodosController < ApiController
     @todos = current_resource_owner.todos.search(params).order(:status, created_at: :desc)
   end
 
+  # GET /todos/dependencies
+  def dependencies
+    @todos = current_resource_owner.todos.search(params)
+  end
+
   # GET /todos/dependents
   def dependents
     @todos = current_resource_owner.todos.search(params)
