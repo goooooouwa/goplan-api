@@ -10,10 +10,6 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     callback
   end
 
-  def wechat
-    callback
-  end
-
   def failure
     redirect_to root_path
   end
