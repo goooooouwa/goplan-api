@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_04_013332) do
+ActiveRecord::Schema.define(version: 2022_07_03_135633) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -101,6 +101,15 @@ ActiveRecord::Schema.define(version: 2022_06_04_013332) do
     t.index ["todo_id"], name: "index_todo_children_on_todo_id"
   end
 
+  create_table "todo_dependents", force: :cascade do |t|
+    t.bigint "todo_id", null: false
+    t.bigint "dependent_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["dependent_id"], name: "index_todo_dependents_on_dependent_id"
+    t.index ["todo_id"], name: "index_todo_dependents_on_todo_id"
+  end
+
   create_table "todos", force: :cascade do |t|
     t.bigint "project_id", null: false
     t.string "name", null: false
@@ -141,5 +150,7 @@ ActiveRecord::Schema.define(version: 2022_06_04_013332) do
   add_foreign_key "projects", "users"
   add_foreign_key "todo_children", "todos"
   add_foreign_key "todo_children", "todos", column: "child_id"
+  add_foreign_key "todo_dependents", "todos"
+  add_foreign_key "todo_dependents", "todos", column: "dependent_id"
   add_foreign_key "todos", "projects"
 end

@@ -2,15 +2,15 @@ class Todo < ApplicationRecord
   belongs_to :project
   delegate :user, to: :project, allow_nil: true
 
-  has_many :todo_dependents, class_name: 'TodoChild',
+  has_many :todo_dependents, class_name: 'TodoDependent',
                              foreign_key: 'todo_id',
                              dependent: :destroy
 
-  has_many :todo_dependencies, class_name: 'TodoChild',
-                               foreign_key: 'child_id',
+  has_many :todo_dependencies, class_name: 'TodoDependent',
+                               foreign_key: 'dependent_id',
                                dependent: :destroy
 
-  has_many :dependents, through: :todo_dependents, source: :child
+  has_many :dependents, through: :todo_dependents, source: :dependent
   has_many :dependencies, through: :todo_dependencies, source: :todo
 
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents, allow_destroy: true
@@ -25,7 +25,7 @@ class Todo < ApplicationRecord
   scope :undone, -> { where(status: false) }
   scope :unactionable, -> { left_outer_joins(:dependencies).where(status: false, dependencies: { status: false }) }
   scope :actionable, -> { where.not(id: unactionable) }
-  scope :childless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
+  scope :dependentless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name
@@ -104,7 +104,7 @@ class Todo < ApplicationRecord
   def todo_dependents_cannot_include_self
     return unless todo_dependents.present?
 
-    if todo_dependents.select { |todo_dependent| todo_dependent.child_id == id }.present?
+    if todo_dependents.select { |todo_dependent| todo_dependent.dependent_id == id }.present?
       errors.add(:dependents, "can't add self as dependent")
     end
   end
@@ -131,7 +131,7 @@ class Todo < ApplicationRecord
   def end_date_cannot_later_than_dependents_start_date
     return unless todo_dependents.present?
 
-    if end_date > Todo.find(todo_dependents.map(&:child_id)).min_by(&:start_date).start_date
+    if end_date > Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date).start_date
       errors.add(:end_date, "end date can't be later than dependents' start date")
     end
   end
