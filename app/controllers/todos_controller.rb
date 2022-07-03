@@ -47,7 +47,6 @@ class TodosController < ApiController
 
   # PATCH/PUT /todos/1
   def update
-    binding.pry
     if @todo.update(todo_params)
       render 'todos/show'
     else
