@@ -15,6 +15,19 @@ class Todo < ApplicationRecord
 
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents, allow_destroy: true
 
+  has_many :todo_children, class_name: 'TodoChild',
+                             foreign_key: 'todo_id',
+                             dependent: :destroy
+
+  has_many :todo_parents, class_name: 'TodoChild',
+                               foreign_key: 'child_id',
+                               dependent: :destroy
+
+  has_many :children, through: :todo_children, source: :child
+  has_many :parents, through: :todo_parents, source: :todo
+
+  accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
+
   scope :of_project, ->(project_id) { where('todos.project_id = ?', project_id) }
   scope :name_contains, lambda { |name|
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
