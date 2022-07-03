@@ -1,6 +1,6 @@
 FactoryBot.define do
-  factory :todo_dependency, class: "TodoChild" do
+  factory :todo_dependency, class: "TodoDependent" do
     todo
-    child { association :todo }
+    dependent { association :todo }
   end
 end

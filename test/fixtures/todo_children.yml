@@ -2,8 +2,8 @@
 
 one:
   todo: one
-  child: one
+  dependent: one
 
 two:
   todo: two
-  child: two
+  dependent: two

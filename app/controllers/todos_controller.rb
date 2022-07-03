@@ -71,7 +71,7 @@ class TodosController < ApiController
 
     new_dependencies = Todo.find dependencies_attributes
     new_dependencies.each do |dependency|
-      todo_dependency = TodoChild.find_by todo_id: dependency.id, child_id: todo.id
+      todo_dependency = TodoDependent.find_by todo_id: dependency.id, dependent_id: todo.id
       todo_dependencies_attributes << {
         id: todo_dependency.nil? ? nil : todo_dependency.id,
         todo_id: dependency.id,
@@ -91,7 +91,7 @@ class TodosController < ApiController
   def todo_params
     params.require(:todo).permit(:project_id, :name, :description, :status, :time_span, :start_date, :end_date, :repeat,
                                  :repeat_period, :repeat_times, :instance_time_span,
-                                 todo_dependents_attributes: [:id, :todo_id, :child_id, :_destroy],
-                                 todo_dependencies_attributes: [:id, :todo_id, :child_id, :_destroy])
+                                 todo_dependents_attributes: [:id, :todo_id, :dependent_id, :_destroy],
+                                 todo_dependencies_attributes: [:id, :todo_id, :dependent_id, :_destroy])
   end
 end

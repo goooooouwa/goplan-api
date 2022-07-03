@@ -39,11 +39,11 @@ def todo_with_dependencies_and_dependents(dependencies_count: 5, dependents_coun
   FactoryBot.create(:todo) do |todo|
     created_dependencies = FactoryBot.create_list(:dependency, dependencies_count)
     created_dependencies.each do |dependency|
-      FactoryBot.create(:todo_dependency, todo: dependency, child: todo)
+      FactoryBot.create(:todo_dependency, todo: dependency, dependent: todo)
     end
     created_dependents = FactoryBot.create_list(:dependent, dependents_count)
     created_dependents.each do |dependent|
-      FactoryBot.create(:todo_dependent, todo: todo, child: dependent)
+      FactoryBot.create(:todo_dependent, todo: todo, dependent: dependent)
     end
   end
 end
@@ -52,7 +52,7 @@ def todo_with_start_date_earlier_than_dependencies_end_date
   FactoryBot.build(:todo_with_very_early_start_date) do |todo|
     created_dependencies = FactoryBot.create_list(:dependencies, 5)
     created_dependencies.each do |dependency|
-      FactoryBot.create(:todo_dependency, todo: dependency, child: todo)
+      FactoryBot.create(:todo_dependency, todo: dependency, dependent: todo)
     end
   end
 end
@@ -61,7 +61,7 @@ def todo_with_end_date_later_than_dependents_start_date
   FactoryBot.create(:todo_with_very_late_end_date) do |todo|
     created_dependents = FactoryBot.create_list(:dependent, 5)
     created_dependents.each do |dependent|
-      FactoryBot.create(:todo_dependent, todo: todo, child: dependent)
+      FactoryBot.create(:todo_dependent, todo: todo, dependent: dependent)
     end
   end
 end

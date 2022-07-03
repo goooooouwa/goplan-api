@@ -35,7 +35,7 @@ RSpec.describe Todo, type: :model do
   end
 
   it 'can not create todo with end date later than dependents start date' do
-    todo = build(:todo_with_very_late_end_date, todo_dependents_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
+    todo = build(:todo_with_very_late_end_date, todo_dependents_attributes: [todo1, todo2].map{ |todo| { dependent_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
     expect(todo.errors[:end_date]).to include("can't be later than dependents' start date")
