@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     collection do
       get 'dependencies', to: 'todos#dependencies'
       get 'dependents', to: 'todos#dependents'
+      get 'children', to: 'todos#children'
     end
     member do
       put 'dependencies', to: 'todos#update_dependencies'
