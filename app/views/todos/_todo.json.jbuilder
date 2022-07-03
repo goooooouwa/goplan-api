@@ -18,7 +18,7 @@ json.dependents do
 end
 json.children do
   if depth < 1
-    json.array! todo.children, partial: 'todos/todo', locals: { depth: depth + 1 }, as: :todo
+    json.array! todo.children.order(:name), partial: 'todos/todo', locals: { depth: depth + 1 }, as: :todo
   else
     json.array! []
   end
