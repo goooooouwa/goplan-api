@@ -47,6 +47,7 @@ class TodosController < ApiController
 
   # PATCH/PUT /todos/1
   def update
+    binding.pry
     if @todo.update(todo_params)
       render 'todos/show'
     else
@@ -95,7 +96,7 @@ class TodosController < ApiController
     params.require(:todo).permit(:project_id, :name, :description, :status, :time_span, :start_date, :end_date, :repeat,
                                  :repeat_period, :repeat_times, :instance_time_span,
                                  todo_dependents_attributes: [:id, :todo_id, :dependent_id, :_destroy],
-                                 children_attributes: [:id, :project_id, :name, :start_date, :end_date, :instance_time_span, :_destroy],
+                                 children_attributes: [:id, :project_id, :name, :start_date, :end_date, :status, :instance_time_span, :_destroy],
                                  todo_dependencies_attributes: [:id, :todo_id, :dependent_id, :_destroy])
   end
 end
