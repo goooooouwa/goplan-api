@@ -137,6 +137,7 @@ class Todo < ApplicationRecord
     end
   end
 
+  # TODO: auto update dependent's start & end date instead of error?
   def start_date_cannot_earlier_than_dependencies_end_date
     return unless todo_dependencies.present?
 
@@ -187,5 +188,13 @@ class Todo < ApplicationRecord
 
   def update_as_repeat(child)
     update(repeat: true) unless repeat
+  end
+
+  def update_start_date_and_end_date(dependency)
+    latest_dependency = dependencies.order(end_date: :desc).first
+    delta = latest_dependency.end_date - start_date
+    if (delta > 0)
+      update(start_date: start_date + delta, end_date: end_date + delta)
+    end
   end
 end
