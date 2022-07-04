@@ -113,14 +113,14 @@ ActiveRecord::Schema.define(version: 2022_07_03_135633) do
   create_table "todos", force: :cascade do |t|
     t.bigint "project_id", null: false
     t.string "name", null: false
-    t.text "description"
-    t.float "time_span"
+    t.text "description", default: "", null: false
+    t.float "time_span", default: 0.0, null: false
     t.datetime "start_date", null: false
     t.datetime "end_date", null: false
-    t.boolean "repeat"
-    t.string "repeat_period"
-    t.integer "repeat_times"
-    t.integer "instance_time_span", null: false
+    t.boolean "repeat", default: false, null: false
+    t.string "repeat_period", default: "", null: false
+    t.integer "repeat_times", default: 0, null: false
+    t.integer "instance_time_span", default: 0, null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "status", default: false
