@@ -1,1 +1,1 @@
-json.array! @todos.childless.undone.order(created_at: :desc) + @todos.done.order(updated_at: :desc), partial: 'todos/todo_with_children', as: :todo, locals: { depth: 0, todos: @todos.undone}
+json.array! @todos.parentless.undone.order(created_at: :desc) + @todos.parentless.done.order(updated_at: :desc), partial: 'todos/todo_with_children', as: :todo, locals: { depth: 0 }

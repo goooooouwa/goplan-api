@@ -40,6 +40,7 @@ class Todo < ApplicationRecord
   scope :actionable, -> { where.not(id: unactionable) }
   scope :dependentless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
   scope :childless, -> { left_outer_joins(:children).where(children: { id: nil }) }
+  scope :parentless, -> { left_outer_joins(:parents).where(parents: { id: nil }) }
   scope :due_date_before, ->(date) { where(status: false).where('end_date <= ?', date) }
 
   validates_presence_of :name

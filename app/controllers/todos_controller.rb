@@ -29,9 +29,6 @@ class TodosController < ApiController
   def create
     @todo = Todo.new(todo_params)
     
-    binding.pry
-    
-
     if @todo.save
       render 'todos/show', status: :created, location: @todo
     else
