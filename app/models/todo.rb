@@ -23,7 +23,7 @@ class Todo < ApplicationRecord
                                foreign_key: 'child_id',
                                dependent: :destroy
 
-  has_many :children, through: :todo_children, source: :child
+  has_many :children, through: :todo_children, source: :child, after_add: :update_as_repeat
   has_many :parents, through: :todo_parents, source: :todo
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
@@ -170,9 +170,7 @@ class Todo < ApplicationRecord
     if (delta.abs / 1.days) > 1
       parents.each do |parent|
         latest_child = parent.children.order(end_date: :desc).first
-        if id == latest_child.id
-          parent.update(end_date: latest_child.end_date) if latest_child.end_date > end_date
-        end
+        parent.update(end_date: latest_child.end_date) if latest_child.end_date > parent.end_date
       end
     end
   end
@@ -181,11 +179,13 @@ class Todo < ApplicationRecord
     delta = start_date - start_date_previously_was
     if (delta.abs / 1.days) > 1
       parents.each do |parent|
-        ealiest_child = parent.children.order(:start_date).first
-        if id == ealiest_child.id
-          parent.update(start_date: earliest_child.start_date) if earliest_child.start_date < start_date
-        end
+        earliest_child = parent.children.order(:start_date).first
+        parent.update(start_date: earliest_child.start_date) if earliest_child.start_date < parent.start_date
       end
     end
+  end
+
+  def update_as_repeat(child)
+    update(repeat: true) unless repeat
   end
 end
