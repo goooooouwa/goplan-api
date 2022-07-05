@@ -52,29 +52,6 @@ class TodosController < ApiController
 
   private
 
-  # def build_todo_dependencies_attributes(todo, dependencies_attributes)
-  #   todo_dependencies_attributes = []
-    
-  #   to_be_destroyed = todo.todo_dependencies.where.not(todo_id: dependencies_attributes)
-  #   to_be_destroyed.each do |todo_dependency|
-  #     todo_dependencies_attributes << {
-  #       id: todo_dependency.id,
-  #       _destroy: '1'
-  #     }
-  #   end
-
-  #   new_dependencies = Todo.find dependencies_attributes
-  #   new_dependencies.each do |dependency|
-  #     todo_dependency = TodoDependent.find_by todo_id: dependency.id, dependent_id: todo.id
-  #     todo_dependencies_attributes << {
-  #       id: todo_dependency.nil? ? nil : todo_dependency.id,
-  #       todo_id: dependency.id,
-  #     }.compact
-  #   end
-
-  #   todo_dependencies_attributes
-  # end
-
   # Use callbacks to share common setup or constraints between actions.
   def set_todo
     @todo = Todo.find(params[:id])
@@ -85,8 +62,7 @@ class TodosController < ApiController
   def todo_params
     params.require(:todo).permit(:project_id, :name, :description, :status, :time_span, :start_date, :end_date, :repeat,
                                  :repeat_period, :repeat_times, :instance_time_span,
-                                 todo_dependents_attributes: [:id, :todo_id, :dependent_id, :_destroy],
                                  children_attributes: [:id, :project_id, :name, :start_date, :end_date, :status, :instance_time_span, :_destroy],
-                                 todo_dependencies_attributes: [:id, :todo_id, :dependent_id, :_destroy])
+                                 dependencies_attributes: [:id, :_destroy])
   end
 end
