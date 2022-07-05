@@ -36,17 +36,6 @@ class TodosController < ApiController
     end
   end
 
-  # PATCH/PUT /todos/1/dependencies
-  def update_dependencies
-    params[:todo][:todo_dependencies_attributes] = build_todo_dependencies_attributes(@todo, params[:dependencies_attributes])
-
-    if @todo.update(todo_params)
-      render 'todos/show'
-    else
-      render json: @todo.errors, status: :unprocessable_entity
-    end
-  end
-
   # PATCH/PUT /todos/1
   def update
     if @todo.update(todo_params)
@@ -63,28 +52,28 @@ class TodosController < ApiController
 
   private
 
-  def build_todo_dependencies_attributes(todo, dependencies_attributes)
-    todo_dependencies_attributes = []
+  # def build_todo_dependencies_attributes(todo, dependencies_attributes)
+  #   todo_dependencies_attributes = []
     
-    to_be_destroyed = todo.todo_dependencies.where.not(todo_id: dependencies_attributes)
-    to_be_destroyed.each do |todo_dependency|
-      todo_dependencies_attributes << {
-        id: todo_dependency.id,
-        _destroy: '1'
-      }
-    end
+  #   to_be_destroyed = todo.todo_dependencies.where.not(todo_id: dependencies_attributes)
+  #   to_be_destroyed.each do |todo_dependency|
+  #     todo_dependencies_attributes << {
+  #       id: todo_dependency.id,
+  #       _destroy: '1'
+  #     }
+  #   end
 
-    new_dependencies = Todo.find dependencies_attributes
-    new_dependencies.each do |dependency|
-      todo_dependency = TodoDependent.find_by todo_id: dependency.id, dependent_id: todo.id
-      todo_dependencies_attributes << {
-        id: todo_dependency.nil? ? nil : todo_dependency.id,
-        todo_id: dependency.id,
-      }.compact
-    end
+  #   new_dependencies = Todo.find dependencies_attributes
+  #   new_dependencies.each do |dependency|
+  #     todo_dependency = TodoDependent.find_by todo_id: dependency.id, dependent_id: todo.id
+  #     todo_dependencies_attributes << {
+  #       id: todo_dependency.nil? ? nil : todo_dependency.id,
+  #       todo_id: dependency.id,
+  #     }.compact
+  #   end
 
-    todo_dependencies_attributes
-  end
+  #   todo_dependencies_attributes
+  # end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_todo
