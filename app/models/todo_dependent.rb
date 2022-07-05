@@ -3,9 +3,9 @@ class TodoDependent < ApplicationRecord
   belongs_to :dependent, class_name: 'Todo', optional: true
   validates_uniqueness_of :dependent_id, :scope => :todo_id
   validates_uniqueness_of :todo_id, :scope => :dependent_id
-  # validate :todo_dependent_cannot_include_self, unless: -> { dependent_id.nil? || todo_id.nil?  }
-  # validate :todo_cannot_be_dependent_dependencies_dependency, unless: -> { dependent_id.nil? || todo_id.nil?  }
-  # validate :dependent_cannot_be_dependents_dependent, unless: -> { dependent_id.nil? || todo_id.nil?  }
+  validate :todo_dependent_cannot_include_self, unless: -> { dependent_id.nil? || todo_id.nil?  }
+  validate :todo_cannot_be_dependent_dependencies_dependency, unless: -> { dependent_id.nil? || todo_id.nil?  }
+  validate :dependent_cannot_be_dependents_dependent, unless: -> { dependent_id.nil? || todo_id.nil?  }
 
   private
   
