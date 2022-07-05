@@ -13,7 +13,10 @@ class Todo < ApplicationRecord
   has_many :dependents, through: :todo_dependents, source: :dependent
   has_many :dependencies, through: :todo_dependencies, source: :todo
 
-  accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents, allow_destroy: true
+  accepts_nested_attributes_for :todo_dependents, allow_destroy: true
+  accepts_nested_attributes_for :todo_dependencies, allow_destroy: true
+  accepts_nested_attributes_for :dependencies, allow_destroy: true
+  accepts_nested_attributes_for :dependents, allow_destroy: true
 
   has_many :todo_children, class_name: 'TodoChild',
                              foreign_key: 'todo_id',
