@@ -36,19 +36,13 @@ class TodosController < ApiController
     end
   end
 
-  # PATCH/PUT /todos/1/dependencies
-  def update_dependencies
-    params[:todo][:todo_dependencies_attributes] = build_todo_dependencies_attributes(@todo, params[:dependencies_attributes])
-
-    if @todo.update(todo_params)
-      render 'todos/show'
-    else
-      render json: @todo.errors, status: :unprocessable_entity
-    end
-  end
-
   # PATCH/PUT /todos/1
   def update
+    if params[:dependencies_attributes].present?
+      params[:todo][:todo_dependencies_attributes] =
+        build_todo_dependencies_attributes(@todo, params[:dependencies_attributes])
+    end
+
     if @todo.update(todo_params)
       render 'todos/show'
     else
