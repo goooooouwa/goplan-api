@@ -48,10 +48,10 @@ class Todo < ApplicationRecord
   validates_presence_of :end_date
   validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
-  validate :start_date_cannot_earlier_than_dependencies_end_date
-  validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependents_cannot_include_self
+  validate :todo_children_cannot_include_self
+  validate :todo_parents_cannot_include_self
   validate :todo_dependencies_cannot_include_deps_dependencies
   validate :todo_dependents_cannot_include_depts_dependents
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
@@ -137,20 +137,21 @@ class Todo < ApplicationRecord
     end
   end
 
-  # TODO: auto update dependent's start & end date instead of error?
-  def start_date_cannot_earlier_than_dependencies_end_date
-    return unless todo_dependencies.present?
+  def todo_children_cannot_include_self
+    return unless todo_children.present?
 
-    if start_date < Todo.find(todo_dependencies.map(&:todo_id)).max_by(&:end_date).end_date
-      errors.add(:start_date, "start date can't be earlier than dependencies' end date")
+    if todo_children.select do |todo_child|
+         todo_child.todo_id == id
+       end.present?
+      errors.add(:children, "can't add self as child")
     end
   end
 
-  def end_date_cannot_later_than_dependents_start_date
-    return unless todo_dependents.present?
+  def todo_parents_cannot_include_self
+    return unless todo_parents.present?
 
-    if end_date > Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date).start_date
-      errors.add(:end_date, "end date can't be later than dependents' start date")
+    if todo_parents.select { |todo_parent| todo_parent.todo_id == id }.present?
+      errors.add(:parents, "can't add self as parent")
     end
   end
 
