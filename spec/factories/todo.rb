@@ -4,11 +4,11 @@ FactoryBot.define do
     name { Faker::Lorem.sentence }
     start_date { Faker::Time.between(from: Time.current - 1, to: Time.current) }
     end_date { Faker::Time.between(from: start_date + 1.days, to: start_date + 100.days) }
-    instance_time_span { Faker::Number.number(digits: 5) }
 
     factory :todo_with_full_info do
       description { Faker::Lorem.sentence }
       time_span { Faker::Number.number(digits: 5) }
+      instance_time_span { Faker::Number.number(digits: 5) }
       repeat { Faker::Boolean.boolean }
       repeat_period { 'week' }
       repeat_times { Faker::Number.number(digits: 5) }
