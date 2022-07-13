@@ -17,6 +17,7 @@ RSpec.describe Todo, type: :model do
 
   it 'validates :end_date_cannot_earlier_than_start_date' do
     todo = build(:todo_with_end_date_earlier_than_start_date)
+    expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
     expect(todo.errors[:end_date]).to include("end date can't be earlier than start date")
   end
@@ -38,23 +39,53 @@ RSpec.describe Todo, type: :model do
   it 'validates :todo_dependencies_cannot_include_self' do
     todo = create(:todo)
     todo.todo_dependencies_attributes = [{ todo_id: todo.id}]
+    expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
     expect(todo.errors[:dependencies]).to include("can't add self as dependency")
   end
 
   it 'validates :todo_dependencies_cannot_include_dependents' do
+    todo = create(:todo)
+    todo.dependents << todo1
+    todo.todo_dependencies_attributes = [{ todo_id: todo1.id}]
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:dependencies]).to include("can't add dependent as dependency")
   end
 
   it 'validates :todo_dependencies_cannot_include_deps_dependencies' do
+    todo = create(:todo)
+    todo1.dependencies << todo2
+    todo.todo_dependencies_attributes = [todo1, todo2].map{ |todo| { todo_id: todo.id } }
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:dependencies]).to include("can't add dependency's dependencies")
   end
 
   it 'validates :todo_dependents_cannot_include_self' do
+    todo = create(:todo)
+    todo.todo_dependents_attributes = [{ dependent_id: todo.id}]
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:dependents]).to include("can't add self as dependent")
   end
 
   it 'validates :todo_dependents_cannot_include_dependencies' do
+    todo = create(:todo)
+    todo.dependencies << todo1
+    todo.todo_dependents_attributes = [{ dependent_id: todo1.id}]
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:dependents]).to include("can't add dependency as dependent")
   end
 
   it 'validates :todo_dependents_cannot_include_depts_dependents' do
+    todo = create(:todo)
+    todo1.dependents << todo2
+    todo.todo_dependents_attributes = [todo1, todo2].map{ |todo| { dependent_id: todo.id } }
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:dependents]).to include("can't add dependent's dependents")
   end
 
   it 'validates :todo_children_cannot_include_self' do

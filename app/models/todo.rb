@@ -135,7 +135,7 @@ class Todo < ApplicationRecord
 
     dependents = Todo.find(todo_dependents.map(&:dependent_id))
     intersection = dependents.filter { |dependent| dependencies.include?(dependent) }
-    errors.add(:dependencies, "can't add dependency as dependent") if intersection.present?
+    errors.add(:dependents, "can't add dependency as dependent") if intersection.present?
   end
 
   def todo_dependents_cannot_include_depts_dependents
