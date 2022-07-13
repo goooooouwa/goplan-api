@@ -22,8 +22,7 @@ RSpec.describe Todo, type: :model do
   end
 
   it 'validates :start_date_cannot_earlier_than_dependencies_end_date' do
-    todo = create(:todo_with_very_early_start_date)
-    todo.todo_dependencies_attributes = FactoryBot.create_list(:todo, 5).map{ |todo| { todo_id: todo.id }}
+    todo = build(:todo_with_very_early_start_date, todo_dependencies_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
     expect(todo.errors[:start_date]).to include("start date can't be earlier than dependencies' end date")
@@ -46,22 +45,22 @@ RSpec.describe Todo, type: :model do
   it 'validates :todo_dependencies_cannot_include_dependents' do
   end
 
-  it 'validates :todo_dependents_cannot_include_dependencies' do
+  it 'validates :todo_dependencies_cannot_include_deps_dependencies' do
   end
 
   it 'validates :todo_dependents_cannot_include_self' do
+  end
+
+  it 'validates :todo_dependents_cannot_include_dependencies' do
+  end
+
+  it 'validates :todo_dependents_cannot_include_depts_dependents' do
   end
 
   it 'validates :todo_children_cannot_include_self' do
   end
 
   it 'validates :todo_parents_cannot_include_self' do
-  end
-
-  it 'validates :todo_dependencies_cannot_include_deps_dependencies' do
-  end
-
-  it 'validates :todo_dependents_cannot_include_depts_dependents' do
   end
 
   it 'validates :cannot_mark_as_done_if_dependencies_not_done' do
