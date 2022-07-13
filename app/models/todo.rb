@@ -91,6 +91,7 @@ class Todo < ApplicationRecord
   private
 
   def end_date_cannot_earlier_than_start_date
+    return if [start_date, end_date].any?(&:nil?)
     errors.add(:end_date, "end date can't be earlier than start date") if end_date < start_date
   end
 
