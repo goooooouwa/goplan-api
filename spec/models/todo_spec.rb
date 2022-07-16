@@ -112,14 +112,41 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:status]).to include("can't mark todo as done since one or more dependencies are still open")
   end
 
-  it 'after_update :update_dependents_timeline, if: -> { saved_change_to_end_date? }' do
+  it 'should #update_dependents_timeline if end date has overlap with earlist dependent' do
     todo = create(:todo)
-    dependent = create(:todo_with_future_start_and_end_date)
+    dependent = create(:todo, start_date: todo.end_date + 2.days, end_date: todo.end_date + 10.days)
     todo.dependents << [dependent]
-    delta = 10.days
-    todo.update end_date: todo.end_date + delta
+    todo.update end_date: todo.end_date + 5.days
+    delta = 3.days
     expect(todo.dependents.first.start_date).to be_within(1.second).of dependent.start_date_previously_was + delta
     expect(todo.dependents.first.end_date).to be_within(1.second).of dependent.end_date_previously_was + delta
+  end
+
+  it 'should not #update_dependents_timeline if end_date is earlier than earlist dependent' do
+    todo = create(:todo)
+    dependent = create(:todo, start_date: todo.end_date + 2.days, end_date: todo.end_date + 10.days)
+    todo.dependents << [dependent]
+    todo.update end_date: todo.end_date + 1.days
+    expect(dependent.start_date_previously_was).to eq(nil)
+    expect(dependent.end_date_previously_was).to eq(nil)
+  end
+
+  it 'should not #update_dependents_timeline if end_date is earlier than previously was' do
+    todo = create(:todo)
+    dependent = create(:todo, start_date: todo.end_date + 2.days, end_date: todo.end_date + 10.days)
+    todo.dependents << [dependent]
+    todo.update end_date: todo.end_date - 1.days
+    expect(dependent.start_date_previously_was).to eq(nil)
+    expect(dependent.end_date_previously_was).to eq(nil)
+  end
+
+  it 'should debounce #update_dependents_timeline if end_date is not changed more than 1 day' do
+    todo = create(:todo)
+    dependent = create(:todo, start_date: todo.end_date, end_date: todo.end_date + 10.days)
+    todo.dependents << [dependent]
+    todo.update end_date: todo.end_date + 23.hours
+    expect(dependent.start_date_previously_was).to eq(nil)
+    expect(dependent.end_date_previously_was).to eq(nil)
   end
 
   it 'after_update :update_parents_end_date, if: -> { saved_change_to_end_date? }' do

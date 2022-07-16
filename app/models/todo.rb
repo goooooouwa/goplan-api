@@ -191,11 +191,14 @@ class Todo < ApplicationRecord
 
   def update_dependents_timeline
     delta = end_date - end_date_previously_was
-    if (delta.abs / 1.days) > 1
-      dependents.each do |dependent|
-        latest_dependency = dependent.dependencies.order(end_date: :desc).first
-        if id == latest_dependency.id
-          dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+    if (delta / 1.days) > 1 && dependents.length > 0
+      overlap = end_date - dependents.order(:start_date).first.start_date
+      if overlap > 0
+        dependents.each do |dependent|
+          latest_dependency = dependent.dependencies.order(end_date: :desc).first
+          if id == latest_dependency.id
+            dependent.update(start_date: dependent.start_date + overlap, end_date: dependent.end_date + overlap)
+          end
         end
       end
     end
