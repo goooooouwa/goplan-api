@@ -51,7 +51,7 @@ class Todo < ApplicationRecord
   validate :start_date_cannot_earlier_than_dependencies_end_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :start_date_cannot_earlier_than_parents_start_date
-  validate :end_date_cannot_later_than_parents_end_date, on: :create
+  validate :end_date_cannot_later_than_parents_end_date
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependencies_cannot_include_dependents
   validate :todo_dependencies_cannot_include_deps_dependencies
@@ -232,11 +232,10 @@ class Todo < ApplicationRecord
     delta = start_date - start_date_previously_was
     if (delta.abs / 1.days) > 1 && children.length > 0
       children.each do |child|
+        update end_date: child.end_date + delta if end_date < child.end_date + delta
         child.update(start_date: child.start_date + delta, end_date: child.end_date + delta)
       end
 
-      latest_child = children.order(end_date: :desc).first
-      self.update end_date: latest_child.end_date if end_date < latest_child.end_date
     end
   end
 
