@@ -62,8 +62,6 @@ class Todo < ApplicationRecord
 
   after_update :update_dependents_timeline, if: -> { saved_change_to_end_date? }
   after_update :update_children_timeline, if: -> { saved_change_to_start_date? }
-  # after_update :update_parents_end_date, if: -> { saved_change_to_end_date? }
-  # after_update :update_parents_start_date, if: -> { saved_change_to_start_date? }
 
   def self.search(query)
     scopes = []
@@ -199,6 +197,7 @@ class Todo < ApplicationRecord
         if id == latest_dependency.id
           dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
         end
+      end
     end
   end
 
@@ -211,26 +210,6 @@ class Todo < ApplicationRecord
 
       latest_child = children.order(end_date: :desc).first
       end_date = latest_child.end_date if end_date < latest_child.end_date
-    end
-  end
-
-  def update_parents_end_date
-    delta = end_date - end_date_previously_was
-    if (delta.abs / 1.days) > 1
-      parents.each do |parent|
-        latest_child = parent.children.order(end_date: :desc).first
-        parent.update(end_date: latest_child.end_date) if latest_child.end_date > parent.end_date
-      end
-    end
-  end
-
-  def update_parents_start_date
-    delta = start_date - start_date_previously_was
-    if (delta.abs / 1.days) > 1
-      parents.each do |parent|
-        earliest_child = parent.children.order(:start_date).first
-        parent.update(start_date: earliest_child.start_date) if earliest_child.start_date < parent.start_date
-      end
     end
   end
 
