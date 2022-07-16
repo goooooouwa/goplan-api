@@ -16,6 +16,13 @@ json.dependents do
     json.array! []
   end
 end
+json.parents do
+  if depth < 1
+    json.array! todo.parents, partial: 'todos/todo', locals: { depth: depth + 1 }, as: :todo
+  else
+    json.array! []
+  end
+end
 json.children do
   if depth < 1
     json.array! todo.children.order(:created_at), partial: 'todos/todo', locals: { depth: depth + 1 }, as: :todo
