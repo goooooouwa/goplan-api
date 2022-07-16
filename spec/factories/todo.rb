@@ -29,8 +29,8 @@ FactoryBot.define do
     end
 
     factory :todo_with_past_start_date_and_future_end_date do
-      start_date { Faker::Time.between(from: Time.current - 10.days, to: Time.current - 9.days) }
-      end_date { Faker::Time.between(from: start_date + 11.days, to: start_date + 20.days) }
+      start_date { Faker::Time.between(from: Time.current - 10.days, to: Time.current - 1.days) }
+      end_date { Faker::Time.between(from: Time.current + 10.days, to: Time.current + 11.days) }
     end
 
     factory :todo_with_future_start_and_end_date do

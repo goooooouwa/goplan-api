@@ -209,7 +209,7 @@ class Todo < ApplicationRecord
       end
 
       latest_child = children.order(end_date: :desc).first
-      end_date = latest_child.end_date if end_date < latest_child.end_date
+      self.update end_date: latest_child.end_date if end_date < latest_child.end_date
     end
   end
 

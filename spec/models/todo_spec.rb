@@ -112,55 +112,45 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:status]).to include("can't mark todo as done since one or more dependencies are still open")
   end
 
-  it 'should #update_dependents_timeline if end date has overlap with earlist dependent' do
+  it '#update_dependents_timeline should update dependents timeline if end date is changed' do
     todo = create(:todo)
-    dependent = create(:todo, start_date: todo.end_date + 2.days, end_date: todo.end_date + 10.days)
+    dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
-    todo.update end_date: todo.end_date + 5.days
-    delta = 3.days
-    expect(todo.dependents.first.start_date).to be_within(1.second).of dependent.start_date_previously_was + delta
-    expect(todo.dependents.first.end_date).to be_within(1.second).of dependent.end_date_previously_was + delta
+    delta = 10.days
+    todo.update end_date: todo.end_date + delta
+    expect(dependent.start_date).to be_within(1.second).of dependent.start_date_previously_was + delta
+    expect(dependent.end_date).to be_within(1.second).of dependent.end_date_previously_was + delta
   end
 
-  it 'should not #update_dependents_timeline if end_date is earlier than earlist dependent' do
+  it '#update_dependents_timeline should debounce if end date is not changed more than 1 day' do
     todo = create(:todo)
-    dependent = create(:todo, start_date: todo.end_date + 2.days, end_date: todo.end_date + 10.days)
-    todo.dependents << [dependent]
-    todo.update end_date: todo.end_date + 1.days
-    expect(dependent.start_date_previously_was).to eq(nil)
-    expect(dependent.end_date_previously_was).to eq(nil)
-  end
-
-  it 'should not #update_dependents_timeline if end_date is earlier than previously was' do
-    todo = create(:todo)
-    dependent = create(:todo, start_date: todo.end_date + 2.days, end_date: todo.end_date + 10.days)
-    todo.dependents << [dependent]
-    todo.update end_date: todo.end_date - 1.days
-    expect(dependent.start_date_previously_was).to eq(nil)
-    expect(dependent.end_date_previously_was).to eq(nil)
-  end
-
-  it 'should debounce #update_dependents_timeline if end_date is not changed more than 1 day' do
-    todo = create(:todo)
-    dependent = create(:todo, start_date: todo.end_date, end_date: todo.end_date + 10.days)
+    dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
     todo.update end_date: todo.end_date + 23.hours
     expect(dependent.start_date_previously_was).to eq(nil)
     expect(dependent.end_date_previously_was).to eq(nil)
   end
 
-  it 'after_update :update_parents_end_date, if: -> { saved_change_to_end_date? }' do
-    todo = create(:todo)
-    todo.parents << [todo1]
-    todo.update start_date: Time.zone.local(1979, 1, 1, 0, 0)
-    expect(todo1.start_date).to eq(todo.start_date)
+  it '#update_children_timeline should update children timeline if start date is changed' do
+    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
+    delta = 10.days
+    todo.update start_date: todo.start_date + delta
+    expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
+    expect(todo.children.last.end_date).to be_within(1.second).of todo.children.last.end_date_previously_was + delta
   end
 
-  it 'after_update :update_parents_start_date, if: -> { saved_change_to_start_date? }' do
-    todo = create(:todo)
-    todo.parents << [todo1]
-    todo.update end_date: Time.zone.local(3000, 1, 1, 0, 0)
-    expect(todo1.end_date).to eq(todo.end_date)
+  it '#update_children_timeline should postpone end date if is earlier than latest child' do
+    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
+    delta = 10.days
+    todo.update start_date: todo.start_date + delta
+    expect(todo.end_date).to be_within(1.second).of todo.children.order(end_date: :desc).first.end_date
+  end
+  
+  it 'should debounce #update_dependents_timeline if start date is not changed more than 1 day' do
+    todo = create(:todo, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
+    todo.update end_date: todo.end_date + 23.hours
+    expect(todo1.start_date_previously_was).to eq(nil)
+    expect(todo1.end_date_previously_was).to eq(nil)
   end
 
   it 'has_many :children, after_add: :update_as_repeat' do
