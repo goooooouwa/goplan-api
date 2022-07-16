@@ -46,6 +46,7 @@ class Todo < ApplicationRecord
   validates_presence_of :name
   validates_presence_of :start_date
   validates_presence_of :end_date
+  validates_length_of :parents, maximum: 1
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
@@ -60,8 +61,9 @@ class Todo < ApplicationRecord
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
   after_update :update_dependents_timeline, if: -> { saved_change_to_end_date? }
-  after_update :update_parents_end_date, if: -> { saved_change_to_end_date? }
-  after_update :update_parents_start_date, if: -> { saved_change_to_start_date? }
+  after_update :update_children_timeline, if: -> { saved_change_to_start_date? }
+  # after_update :update_parents_end_date, if: -> { saved_change_to_end_date? }
+  # after_update :update_parents_start_date, if: -> { saved_change_to_start_date? }
 
   def self.search(query)
     scopes = []
@@ -191,16 +193,24 @@ class Todo < ApplicationRecord
 
   def update_dependents_timeline
     delta = end_date - end_date_previously_was
-    if (delta / 1.days) > 1 && dependents.length > 0
-      overlap = end_date - dependents.order(:start_date).first.start_date
-      if overlap > 0
-        dependents.each do |dependent|
-          latest_dependency = dependent.dependencies.order(end_date: :desc).first
-          if id == latest_dependency.id
-            dependent.update(start_date: dependent.start_date + overlap, end_date: dependent.end_date + overlap)
-          end
+    if (delta.abs / 1.days) > 1
+      dependents.each do |dependent|
+        latest_dependency = dependent.dependencies.order(end_date: :desc).first
+        if id == latest_dependency.id
+          dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
         end
+    end
+  end
+
+  def update_children_timeline
+    delta = start_date - start_date_previously_was
+    if (delta.abs / 1.days) > 1 && children.length > 0
+      children.each do |child|
+        child.update(start_date: child.start_date + delta, end_date: child.end_date + delta)
       end
+
+      latest_child = children.order(end_date: :desc).first
+      end_date = latest_child.end_date if end_date < latest_child.end_date
     end
   end
 
