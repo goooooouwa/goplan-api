@@ -110,8 +110,9 @@ class Todo < ApplicationRecord
     return unless todo_dependencies.present?
 
     dependencies = Todo.find(todo_dependencies.map(&:todo_id))
-    intersection = dependencies.filter { |dependency| dependents.include?(dependency) }
-    errors.add(:dependencies, "can't add dependent as dependency") if intersection.present?
+    dependents.each do |dependent|
+      errors.add(:dependencies, "can't add dependent #{dependent.name} as dependency") if dependencies.include?(dependent)
+    end
   end
 
   def todo_dependencies_cannot_include_deps_dependencies
@@ -119,8 +120,9 @@ class Todo < ApplicationRecord
 
     dependencies = Todo.find(todo_dependencies.map(&:todo_id))
     deps_dependencies = dependencies.map { |dependency| dependency.dependencies }.flatten.uniq
-    intersection = deps_dependencies.filter { |deps_dependency| dependencies.include?(deps_dependency) }
-    errors.add(:dependencies, "can't add dependency's dependencies") if intersection.present?
+    dependencies.each do |dependency|
+      errors.add(:dependencies, "can't add dependency #{dependency.name}'s dependencies") if deps_dependencies.include?(dependency)
+    end
   end
 
   def todo_dependents_cannot_include_self
@@ -135,8 +137,9 @@ class Todo < ApplicationRecord
     return unless todo_dependents.present?
 
     dependents = Todo.find(todo_dependents.map(&:dependent_id))
-    intersection = dependents.filter { |dependent| dependencies.include?(dependent) }
-    errors.add(:dependents, "can't add dependency as dependent") if intersection.present?
+    dependencies.each do |dependency|
+      errors.add(:dependents, "can't add dependency #{dependency.name} as dependent") if dependents.include?(dependency)
+    end
   end
 
   def todo_dependents_cannot_include_depts_dependents
@@ -144,18 +147,20 @@ class Todo < ApplicationRecord
 
     dependents = Todo.find(todo_dependents.map(&:dependent_id))
     deps_dependents = dependents.map { |dependent| dependent.dependents }.flatten.uniq
-    intersection = deps_dependents.filter { |deps_dependent| dependents.include?(deps_dependent) }
-    errors.add(:dependents, "can't add dependent's dependents") if intersection.present?
+    dependents.each do |dependent|
+      errors.add(:dependents, "can't add dependent #{dependent.name}'s dependents") if deps_dependents.include?(dependent)
+    end
   end
   
   def cannot_mark_as_done_if_dependencies_not_done
     return unless todo_dependencies.present?
 
-    error_message = "can't mark todo as done since one or more dependencies are still open"
-    if Todo.find(todo_dependencies.map(&:todo_id)).select do |dependency|
-         dependency.status == false
-       end.present?
-      errors.add(:status, error_message)
+    dependencies = Todo.find(todo_dependencies.map(&:todo_id))
+    dependencies.each do |dependency|
+      if dependency.status == false
+        errors.add(:status,
+                   "can't mark todo as done since dependency #{dependency.name} is still open")
+      end
     end
   end
 
@@ -178,32 +183,36 @@ class Todo < ApplicationRecord
   def start_date_cannot_earlier_than_dependencies_end_date
     return unless todo_dependencies.present?
 
-    if start_date < Todo.find(todo_dependencies.map(&:todo_id)).max_by(&:end_date).end_date
-      errors.add(:start_date, "start date can't be earlier than dependencies' end date")
+    latest_dependency = Todo.find(todo_dependencies.map(&:todo_id)).max_by(&:end_date)
+    if start_date < latest_dependency.end_date
+      errors.add(:start_date, "start date can't be earlier than dependency #{latest_dependency.name}'s end date")
     end
   end
 
   def end_date_cannot_later_than_dependents_start_date
     return unless todo_dependents.present?
 
-    if end_date > Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date).start_date
-      errors.add(:end_date, "end date can't be later than dependents' start date")
+    earliest_dependent = Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date)
+    if end_date > earliest_dependent.start_date
+      errors.add(:end_date, "end date can't be later than dependent #{earliest_dependent.name}'s start date")
     end
   end
 
   def start_date_cannot_earlier_than_parents_start_date
     return unless todo_parents.present?
 
-    if start_date < Todo.find(todo_parents.map(&:todo_id)).max_by(&:start_date).start_date
-      errors.add(:start_date, "start date can't be earlier than parents' start date")
+    latest_parent = Todo.find(todo_parents.map(&:todo_id)).max_by(&:start_date)
+    if start_date < latest_parent.start_date
+      errors.add(:start_date, "start date can't be earlier than parent #{latest_parent.name}'s start date")
     end
   end
 
   def end_date_cannot_later_than_parents_end_date
     return unless todo_parents.present?
     
-    if end_date > Todo.find(todo_parents.map(&:todo_id)).min_by(&:end_date).end_date
-      errors.add(:end_date, "end date can't be later than parents' end date")
+    earliest_parent = Todo.find(todo_parents.map(&:todo_id)).min_by(&:end_date)
+    if end_date > earliest_parent.end_date
+      errors.add(:end_date, "end date can't be later than parent #{earliest_parent.name}'s end date")
     end
   end
 

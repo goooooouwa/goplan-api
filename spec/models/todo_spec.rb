@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Todo, type: :model do
-  let(:todo1)  { create :todo }
-  let(:todo2)  { create :todo }
+  let(:todo1)  { create :todo, name: "Todo 1" }
+  let(:todo2)  { create :todo, name: "Todo 2" }
 
   it 'can create todo with default value' do
     todo = create(:todo)
@@ -26,14 +26,14 @@ RSpec.describe Todo, type: :model do
     todo = build(:todo_with_very_early_start_date, todo_dependencies_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:start_date]).to include("start date can't be earlier than dependencies' end date")
+    expect(todo.errors[:start_date]).to include(/start date can't be earlier than dependency Todo (1|2)'s end date/)
   end
 
   it 'validate :end_date_cannot_later_than_dependents_start_date, on: :create' do
     todo = build(:todo_with_very_late_end_date, todo_dependents_attributes: [todo1, todo2].map{ |todo| { dependent_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:end_date]).to include("end date can't be later than dependents' start date")
+    expect(todo.errors[:end_date]).to include(/end date can't be later than dependent Todo (1|2)'s start date/)
   end
 
   it 'validates :todo_dependencies_cannot_include_self' do
@@ -48,23 +48,23 @@ RSpec.describe Todo, type: :model do
     todo = build(:todo_with_past_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:start_date]).to include("start date can't be earlier than parents' start date")
+    expect(todo.errors[:start_date]).to include(/start date can't be earlier than parent Todo (1|2)'s start date/)
   end
 
   it 'validates :end_date_cannot_later_than_parents_end_date' do
     todo = build(:todo_with_future_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:end_date]).to include("end date can't be later than parents' end date")
+    expect(todo.errors[:end_date]).to include(/end date can't be later than parent Todo (1|2)'s end date/)
   end
 
   it 'validates :todo_dependencies_cannot_include_dependents' do
     todo = create(:todo)
-    todo.dependents << todo1
+    todo.dependents << [todo1, todo2]
     todo.todo_dependencies_attributes = [{ todo_id: todo1.id}]
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:dependencies]).to include("can't add dependent as dependency")
+    expect(todo.errors[:dependencies]).to include(/can't add dependent Todo 1 as dependency/)
   end
 
   it 'validates :todo_dependencies_cannot_include_deps_dependencies' do
@@ -73,7 +73,7 @@ RSpec.describe Todo, type: :model do
     todo.todo_dependencies_attributes = [todo1, todo2].map{ |todo| { todo_id: todo.id } }
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:dependencies]).to include("can't add dependency's dependencies")
+    expect(todo.errors[:dependencies]).to include(/can't add dependency Todo (1|2)'s dependencies/)
   end
 
   it 'validates :todo_dependents_cannot_include_self' do
@@ -90,7 +90,7 @@ RSpec.describe Todo, type: :model do
     todo.todo_dependents_attributes = [{ dependent_id: todo1.id}]
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:dependents]).to include("can't add dependency as dependent")
+    expect(todo.errors[:dependents]).to include(/can't add dependency Todo (1|2) as dependent/)
   end
 
   it 'validates :todo_dependents_cannot_include_depts_dependents' do
@@ -99,7 +99,7 @@ RSpec.describe Todo, type: :model do
     todo.todo_dependents_attributes = [todo1, todo2].map{ |todo| { dependent_id: todo.id } }
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:dependents]).to include("can't add dependent's dependents")
+    expect(todo.errors[:dependents]).to include(/can't add dependent Todo (1|2)'s dependents/)
   end
 
   it 'validates :todo_children_cannot_include_self' do
@@ -123,7 +123,7 @@ RSpec.describe Todo, type: :model do
     todo.status = true
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:status]).to include("can't mark todo as done since one or more dependencies are still open")
+    expect(todo.errors[:status]).to include(/can't mark todo as done since dependency Todo (1|2) is still open/)
   end
 
   it '#update_dependents_timeline should update dependents timeline if end date is changed' do
