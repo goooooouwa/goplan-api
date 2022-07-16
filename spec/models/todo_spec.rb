@@ -44,6 +44,20 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:dependencies]).to include("can't add self as dependency")
   end
 
+  it 'validate :start_date_cannot_earlier_than_parents_start_date' do
+    todo = build(:todo_with_past_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:start_date]).to include("start date can't be earlier than parents' start date")
+  end
+
+  it 'validates :end_date_cannot_later_than_parents_end_date' do
+    todo = build(:todo_with_future_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:end_date]).to include("end date can't be later than parents' end date")
+  end
+
   it 'validates :todo_dependencies_cannot_include_dependents' do
     todo = create(:todo)
     todo.dependents << todo1

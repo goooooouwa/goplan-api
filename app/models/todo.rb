@@ -50,6 +50,8 @@ class Todo < ApplicationRecord
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
+  validate :start_date_cannot_earlier_than_parents_start_date
+  validate :end_date_cannot_later_than_parents_end_date, on: :create
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependencies_cannot_include_dependents
   validate :todo_dependencies_cannot_include_deps_dependencies
@@ -186,6 +188,22 @@ class Todo < ApplicationRecord
 
     if end_date > Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date).start_date
       errors.add(:end_date, "end date can't be later than dependents' start date")
+    end
+  end
+
+  def start_date_cannot_earlier_than_parents_start_date
+    return unless todo_parents.present?
+
+    if start_date < Todo.find(todo_parents.map(&:todo_id)).max_by(&:start_date).start_date
+      errors.add(:start_date, "start date can't be earlier than parents' start date")
+    end
+  end
+
+  def end_date_cannot_later_than_parents_end_date
+    return unless todo_parents.present?
+    
+    if end_date > Todo.find(todo_parents.map(&:todo_id)).min_by(&:end_date).end_date
+      errors.add(:end_date, "end date can't be later than parents' end date")
     end
   end
 
