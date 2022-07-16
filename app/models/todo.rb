@@ -11,7 +11,7 @@ class Todo < ApplicationRecord
                                dependent: :destroy
 
   has_many :dependents, through: :todo_dependents, source: :dependent
-  has_many :dependencies, through: :todo_dependencies, source: :todo, after_add: :update_start_date_and_end_date
+  has_many :dependencies, through: :todo_dependencies, source: :todo
 
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents, allow_destroy: true
 
@@ -46,7 +46,6 @@ class Todo < ApplicationRecord
   validates_presence_of :name
   validates_presence_of :start_date
   validates_presence_of :end_date
-  validates_presence_of :instance_time_span
   validate :end_date_cannot_earlier_than_start_date
   validate :start_date_cannot_earlier_than_dependencies_end_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
@@ -207,7 +206,7 @@ class Todo < ApplicationRecord
     if (delta.abs / 1.days) > 1
       parents.each do |parent|
         latest_child = parent.children.order(end_date: :desc).first
-        parent.update(end_date: latest_child.end_date)
+        parent.update(end_date: latest_child.end_date) if latest_child.end_date > parent.end_date
       end
     end
   end
@@ -217,20 +216,12 @@ class Todo < ApplicationRecord
     if (delta.abs / 1.days) > 1
       parents.each do |parent|
         earliest_child = parent.children.order(:start_date).first
-        parent.update(start_date: earliest_child.start_date)
+        parent.update(start_date: earliest_child.start_date) if earliest_child.start_date < parent.start_date
       end
     end
   end
 
   def update_as_repeat(child)
     update(repeat: true) unless repeat
-  end
-
-  def update_start_date_and_end_date(dependency)
-    latest_dependency = dependencies.order(end_date: :desc).first
-    delta = latest_dependency.end_date - start_date
-    if (delta > 0)
-      update(start_date: start_date + delta, end_date: end_date + delta)
-    end
   end
 end

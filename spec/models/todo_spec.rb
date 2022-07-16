@@ -89,12 +89,27 @@ RSpec.describe Todo, type: :model do
   end
 
   it 'validates :todo_children_cannot_include_self' do
+    todo = create(:todo)
+    todo.todo_children_attributes = [{ child_id: todo.id}]
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:children]).to include("can't add self as child")
   end
 
   it 'validates :todo_parents_cannot_include_self' do
+    todo = create(:todo)
+    todo.todo_parents_attributes = [{ todo_id: todo.id}]
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:parents]).to include("can't add self as parent")
   end
 
   it 'validates :cannot_mark_as_done_if_dependencies_not_done' do
+    todo = create(:todo_with_future_start_and_end_date, todo_dependencies_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
+    todo.status = true
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:status]).to include("can't mark todo as done since one or more dependencies are still open")
   end
 
   it 'after_update :update_dependents_timeline, if: -> { saved_change_to_end_date? }' do
@@ -108,15 +123,23 @@ RSpec.describe Todo, type: :model do
   end
 
   it 'after_update :update_parents_end_date, if: -> { saved_change_to_end_date? }' do
+    todo = create(:todo)
+    todo.parents << [todo1]
+    todo.update start_date: Time.zone.local(1979, 1, 1, 0, 0)
+    expect(todo1.start_date).to eq(todo.start_date)
   end
 
   it 'after_update :update_parents_start_date, if: -> { saved_change_to_start_date? }' do
+    todo = create(:todo)
+    todo.parents << [todo1]
+    todo.update end_date: Time.zone.local(3000, 1, 1, 0, 0)
+    expect(todo1.end_date).to eq(todo.end_date)
   end
 
-  it 'after_add: :update_as_repeat' do
-  end
-
-  it 'after_add: :update_start_date_and_end_date' do
+  it 'has_many :children, after_add: :update_as_repeat' do
+    project = create(:project)
+    todo = create(:todo, children_attributes: [attributes_for(:todo, project_id: project.id)])
+    expect(todo.repeat).to eq(true)
   end
 
 end
