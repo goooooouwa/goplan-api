@@ -3,7 +3,7 @@ FactoryBot.define do
     project
     name { Faker::Lorem.sentence }
     start_date { Faker::Time.between(from: Time.current - 1, to: Time.current) }
-    end_date { Faker::Time.between(from: start_date + 1.days, to: start_date + 10.days) }
+    end_date { Faker::Time.between(from: start_date + 9.days, to: start_date + 10.days) }
 
     factory :todo_with_full_info do
       description { Faker::Lorem.sentence }
@@ -29,7 +29,7 @@ FactoryBot.define do
     end
 
     factory :todo_with_past_start_date_and_future_end_date do
-      start_date { Faker::Time.between(from: Time.current - 10.days, to: Time.current - 1.days) }
+      start_date { Faker::Time.between(from: Time.current - 2.days, to: Time.current - 1.days) }
       end_date { Faker::Time.between(from: Time.current + 10.days, to: Time.current + 11.days) }
     end
 

@@ -218,7 +218,7 @@ class Todo < ApplicationRecord
 
   def update_dependents_timeline
     delta = end_date - end_date_previously_was
-    if (delta.abs / 1.days) > 1
+    if (delta / 1.days) > 1
       dependents.each do |dependent|
         latest_dependency = dependent.dependencies.order(end_date: :desc).first
         if id == latest_dependency.id
