@@ -38,7 +38,7 @@ class TodosController < ApiController
 
   # PATCH/PUT /todos/1
   def update
-    if params[:dependencies_attributes].present?
+    unless params[:dependencies_attributes].nil?
       params[:todo][:todo_dependencies_attributes] =
         build_todo_dependencies_attributes(@todo, params[:dependencies_attributes])
     end
