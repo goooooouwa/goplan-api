@@ -58,6 +58,13 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:end_date]).to include(/end date can't be later than parent Todo (1|2)'s end date/)
   end
 
+  it 'validates :end_date_cannot_earlier_than_children_end_date' do
+    todo = build(:todo_with_past_start_and_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:end_date]).to include(/end date can't be earlier than child Todo (1|2)'s end date/)
+  end
+
   it 'validates :todo_dependencies_cannot_include_dependents' do
     todo = create(:todo)
     todo.dependents << [todo1, todo2]
@@ -171,7 +178,7 @@ RSpec.describe Todo, type: :model do
   end
   
   it 'should debounce #update_children_timeline if start date is not changed more than 1 day' do
-    todo = create(:todo, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
+    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
     todo.update end_date: todo.end_date + 23.hours
     expect(todo1.start_date_previously_was).to eq(nil)
     expect(todo1.end_date_previously_was).to eq(nil)
@@ -179,7 +186,7 @@ RSpec.describe Todo, type: :model do
 
   it 'has_many :children, after_add: :update_as_repeat' do
     project = create(:project)
-    todo = create(:todo, children_attributes: [attributes_for(:todo, project_id: project.id)])
+    todo = create(:todo_with_past_start_date_and_future_end_date, children_attributes: [attributes_for(:todo, project_id: project.id)])
     expect(todo.repeat).to eq(true)
   end
 

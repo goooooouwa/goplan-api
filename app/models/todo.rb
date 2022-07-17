@@ -52,6 +52,7 @@ class Todo < ApplicationRecord
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :start_date_cannot_earlier_than_parents_start_date
   validate :end_date_cannot_later_than_parents_end_date
+  validate :end_date_cannot_earlier_than_children_end_date
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependencies_cannot_include_dependents
   validate :todo_dependencies_cannot_include_deps_dependencies
@@ -216,6 +217,15 @@ class Todo < ApplicationRecord
     end
   end
 
+  def end_date_cannot_earlier_than_children_end_date
+    return unless todo_children.present?
+    
+    latest_child = Todo.find(todo_children.map(&:child_id)).max_by(&:end_date)
+    if end_date < latest_child.end_date
+      errors.add(:end_date, "end date can't be earlier than child #{latest_child.name}'s end date")
+    end
+  end
+  
   def update_dependents_timeline
     delta = end_date - end_date_previously_was
     if (delta / 1.days) > 1
