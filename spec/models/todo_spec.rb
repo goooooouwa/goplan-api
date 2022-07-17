@@ -176,7 +176,17 @@ RSpec.describe Todo, type: :model do
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
     delta = 8.days
-    todo.update start_date: todo.start_date + delta
+    
+    puts todo.end_date
+    puts todo.children.first.end_date
+
+    todo.start_date = todo.start_date + delta
+
+    expect(todo.save).to eq(true)
+
+    puts todo.end_date
+    puts todo.children.first.end_date
+
     expect(todo).to be_valid
     expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
     expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
@@ -200,16 +210,16 @@ RSpec.describe Todo, type: :model do
     expect(todo.dependents.first.end_date_previously_was).to eq(nil)
   end
 
-  it '#shift_end_date should not shift end date if it is to be changed' do
+  it '#shift_end_date should not shift end date if end date is to be changed more than 1 day' do
     todo = create(:todo_with_past_start_date_and_future_end_date)
-    delta_of_start_date = 4.days
-    delta_of_end_date = 1.days
+    delta_of_start_date = 5.days
+    delta_of_end_date = 2.days
     todo.update start_date: todo.start_date + delta_of_start_date, end_date: todo.end_date + delta_of_end_date
     expect(todo).to be_valid
     expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta_of_end_date
   end
 
-  it '#shift_end_date should debounce if start date is not changed more than 1 day' do
+  it '#shift_end_date should not shift end date if start date is not changed more than 1 day' do
     todo = create(:todo_with_past_start_date_and_future_end_date)
     delta = 23.hours
     todo.update start_date: todo.start_date + delta
