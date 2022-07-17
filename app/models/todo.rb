@@ -242,7 +242,7 @@ class Todo < ApplicationRecord
 
   def shift_end_date
     delta = start_date - start_date_was
-    self.end_date = end_date + delta if (delta.abs / 1.days) > 1
+    self.end_date = end_date + delta if (!will_save_change_to_end_date?) && ((delta.abs / 1.days) > 1)
   end
 
   def change_children_start_date
