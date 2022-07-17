@@ -261,8 +261,8 @@ class Todo < ApplicationRecord
     if (delta.abs / 1.days) > 1
       self.parents_attributes = parents.map do |parent|
         latest_child = parent.children.order(end_date: :desc).first
-        if id == latest_child.id && parent.end_date < latest_child.end_date + delta
-          { id: parent.id, end_date: latest_child.end_date + delta }
+        if id == latest_child.id && parent.end_date < end_date
+          { id: parent.id, end_date: end_date }
         end
       end.compact
     end

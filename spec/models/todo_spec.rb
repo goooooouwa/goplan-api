@@ -242,7 +242,7 @@ RSpec.describe Todo, type: :model do
     todo.end_date = todo.end_date + delta
     expect(todo).to be_valid
     expect(todo.save).to eq(true)
-    expect(todo.parents.first.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
+    expect(todo.parents.first.end_date).to be_within(1.second).of todo.end_date
   end
 
   it 'has_many :children, after_add: :update_as_repeat' do
