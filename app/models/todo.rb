@@ -53,7 +53,7 @@ class Todo < ApplicationRecord
   validate :start_date_cannot_earlier_than_parents_start_date
   validate :end_date_cannot_earlier_than_start_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
-  validate :end_date_cannot_later_than_parents_end_date
+  validate :end_date_cannot_later_than_parents_end_date, on: :create
   validate :end_date_cannot_earlier_than_children_end_date
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependencies_cannot_include_dependents
@@ -241,9 +241,9 @@ class Todo < ApplicationRecord
   end
 
   def shift_end_date
-    delta_of_start_date = start_date - start_date_was
-    if ((delta_of_start_date.abs / 1.days) > 1) && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1)
-      self.end_date = end_date + delta_of_start_date
+    delta = start_date - start_date_was
+    if ((delta.abs / 1.days) > 1) && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1)
+      self.end_date = end_date + delta
     end
   end
 
@@ -261,7 +261,9 @@ class Todo < ApplicationRecord
     if (delta.abs / 1.days) > 1
       self.parents_attributes = parents.map do |parent|
         latest_child = parent.children.order(end_date: :desc).first
-        { id: parent.id, end_date: latest_child.end_date } if parent.end_date < latest_child.end_date
+        if id == latest_child.id && parent.end_date < latest_child.end_date + delta
+          { id: parent.id, end_date: latest_child.end_date + delta }
+        end
       end.compact
     end
   end

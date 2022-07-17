@@ -234,6 +234,17 @@ RSpec.describe Todo, type: :model do
     expect(todo1.start_date_previously_was).to eq(nil)
   end
 
+  it '#change_parents_end_date should change parents end date if end date is later than parent end date', focus: true do
+    todo = create(:todo)
+    parent = create(:todo_with_past_start_date_and_future_end_date)
+    todo.parents << parent
+    delta = 20.days
+    todo.end_date = todo.end_date + delta
+    expect(todo).to be_valid
+    expect(todo.save).to eq(true)
+    expect(todo.parents.first.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
+  end
+
   it 'has_many :children, after_add: :update_as_repeat' do
     project = create(:project)
     todo = create(:todo_with_past_start_date_and_future_end_date, children_attributes: [attributes_for(:todo, project_id: project.id)])
