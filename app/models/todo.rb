@@ -247,10 +247,13 @@ class Todo < ApplicationRecord
 
   def change_children_start_date
     delta = start_date - start_date_was
-    if (delta.abs / 1.days) > 1
+    if (delta.abs / 1.days) > 1 && children.length > 0
       self.children_attributes = children.map do |child|
         { id: child.id, start_date: child.start_date + delta }
       end
+
+      latest_child = children.order(end_date: :desc).first
+      self.end_date = latest_child.end_date + delta if end_date < latest_child.end_date + delta
     end
   end
 
