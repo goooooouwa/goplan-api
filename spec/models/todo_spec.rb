@@ -175,19 +175,10 @@ RSpec.describe Todo, type: :model do
     todo.children << todo1
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
-    delta = 8.days
-    
-    puts todo.end_date
-    puts todo.children.first.end_date
-
+    delta = 5.days
     todo.start_date = todo.start_date + delta
-
-    expect(todo.save).to eq(true)
-
-    puts todo.end_date
-    puts todo.children.first.end_date
-
     expect(todo).to be_valid
+    expect(todo.save).to eq(true)
     expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
     expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
     expect(todo.children.first.end_date).to be_within(1.second).of todo.children.first.end_date_previously_was + delta

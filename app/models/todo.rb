@@ -65,7 +65,7 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  before_update :change_children_start_date, :shift_end_date, if: -> { will_save_change_to_start_date? }
+  before_update :shift_end_date, :change_children_start_date, if: -> { will_save_change_to_start_date? }
   before_update :change_dependents_start_date, if: -> { will_save_change_to_end_date? }
 
   def self.search(query)
@@ -241,8 +241,10 @@ class Todo < ApplicationRecord
   end
 
   def shift_end_date
-    delta = start_date - start_date_was
-    self.end_date = end_date + delta if (!will_save_change_to_end_date?) && ((delta.abs / 1.days) > 1)
+    delta_of_start_date = start_date - start_date_was
+    if ((delta_of_start_date.abs / 1.days) > 1) && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1)
+      self.end_date = end_date + delta_of_start_date
+    end
   end
 
   def change_children_start_date
