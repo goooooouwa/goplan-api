@@ -47,8 +47,6 @@ class Todo < ApplicationRecord
   validates_presence_of :start_date
   validates_presence_of :end_date
   validates_length_of :parents, maximum: 1
-  validates_associated :children
-  validates_associated :dependents
   validate :start_date_cannot_earlier_than_dependencies_end_date
   validate :start_date_cannot_earlier_than_parents_start_date
   validate :end_date_cannot_earlier_than_start_date
@@ -65,9 +63,9 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  before_update :shift_end_date, if: -> { will_save_change_to_start_date? }
-  after_update :update_children_timeline, if: -> { saved_change_to_start_date? && saved_change_to_end_date? }
-  after_update :update_dependents_timeline, :update_parents_end_date, if: -> { saved_change_to_end_date? }
+  before_update :shift_end_date, if: -> { will_save_change_to_start_date? && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1) }
+  after_commit :update_children_timeline, on: :update, if: -> { saved_change_to_start_date? && saved_change_to_end_date? }
+  after_commit :update_dependents_timeline, :update_parents_end_date, on: :update, if: -> { saved_change_to_end_date? }
 
   def self.search(query)
     scopes = []
@@ -97,7 +95,7 @@ class Todo < ApplicationRecord
 
   def end_date_cannot_earlier_than_start_date
     return if [start_date, end_date].any?(&:nil?)
-    errors.add(:end_date, "end date can't be earlier than start date") if end_date < start_date
+    errors.add(:end_date, "end date #{end_date} can't be earlier than start date #{start_date}") if end_date < start_date
   end
 
   def todo_dependencies_cannot_include_self
@@ -189,7 +187,7 @@ class Todo < ApplicationRecord
 
     latest_dependency = Todo.find(todo_dependencies.map(&:todo_id)).max_by(&:end_date)
     if start_date < latest_dependency.end_date
-      errors.add(:start_date, "start date can't be earlier than dependency #{latest_dependency.name}'s end date")
+      errors.add(:start_date, "start date #{start_date} can't be earlier than dependency #{latest_dependency.name}'s end date #{latest_dependency.end_date}")
     end
   end
 
@@ -198,7 +196,7 @@ class Todo < ApplicationRecord
 
     earliest_dependent = Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date)
     if end_date > earliest_dependent.start_date
-      errors.add(:end_date, "end date can't be later than dependent #{earliest_dependent.name}'s start date")
+      errors.add(:end_date, "end date #{end_date} can't be later than dependent #{earliest_dependent.name}'s start date #{earliest_dependent.start_date}")
     end
   end
 
@@ -207,7 +205,7 @@ class Todo < ApplicationRecord
 
     latest_parent = Todo.find(todo_parents.map(&:todo_id)).max_by(&:start_date)
     if start_date < latest_parent.start_date
-      errors.add(:start_date, "start date can't be earlier than parent #{latest_parent.name}'s start date")
+      errors.add(:start_date, "start date #{start_date} can't be earlier than parent #{latest_parent.name}'s start date #{latest_parent.start_date}")
     end
   end
 
@@ -216,7 +214,7 @@ class Todo < ApplicationRecord
     
     earliest_parent = Todo.find(todo_parents.map(&:todo_id)).min_by(&:end_date)
     if end_date > earliest_parent.end_date
-      errors.add(:end_date, "end date can't be later than parent #{earliest_parent.name}'s end date")
+      errors.add(:end_date, "end date #{end_date} can't be later than parent #{earliest_parent.name}'s end date #{earliest_parent.end_date}")
     end
   end
 
@@ -225,7 +223,7 @@ class Todo < ApplicationRecord
     
     latest_child = Todo.find(todo_children.map(&:child_id)).max_by(&:end_date)
     if end_date < latest_child.end_date
-      errors.add(:end_date, "end date can't be earlier than child #{latest_child.name}'s end date")
+      errors.add(:end_date, "end date #{end_date} can't be earlier than child #{latest_child.name}'s end date #{latest_child.end_date}")
     end
   end
   
@@ -243,7 +241,7 @@ class Todo < ApplicationRecord
 
   def shift_end_date
     delta = start_date - start_date_was
-    if ((delta.abs / 1.days) > 1) && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1)
+    if ((delta.abs / 1.days) > 1)
       self.end_date = end_date + delta
     end
   end
