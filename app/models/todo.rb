@@ -66,7 +66,7 @@ class Todo < ApplicationRecord
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
   before_update :shift_end_date, :change_children_start_date, if: -> { will_save_change_to_start_date? }
-  before_update :change_dependents_start_date, if: -> { will_save_change_to_end_date? }
+  before_update :change_dependents_start_date, :change_parents_end_date, if: -> { will_save_change_to_end_date? }
 
   def self.search(query)
     scopes = []
@@ -253,9 +253,16 @@ class Todo < ApplicationRecord
       self.children_attributes = children.map do |child|
         { id: child.id, start_date: child.start_date + delta }
       end
+    end
+  end
 
-      latest_child = children.order(end_date: :desc).first
-      self.end_date = latest_child.end_date + delta if end_date < latest_child.end_date + delta
+  def change_parents_end_date
+    delta = end_date - end_date_was
+    if (delta.abs / 1.days) > 1
+      self.parents_attributes = parents.map do |parent|
+        latest_child = parent.children.order(end_date: :desc).first
+        { id: parent.id, end_date: latest_child.end_date } if parent.end_date < latest_child.end_date
+      end.compact
     end
   end
 
