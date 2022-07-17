@@ -66,8 +66,8 @@ class Todo < ApplicationRecord
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
   before_update :shift_end_date, if: -> { will_save_change_to_start_date? }
+  after_update :update_children_timeline, if: -> { saved_change_to_start_date? && saved_change_to_end_date? }
   after_update :update_dependents_timeline, :update_parents_end_date, if: -> { saved_change_to_end_date? }
-  after_update :update_children_timeline, if: -> { saved_change_to_start_date? }
 
   def self.search(query)
     scopes = []
@@ -237,7 +237,7 @@ class Todo < ApplicationRecord
         if id == latest_dependency.id && dependent.start_date < end_date
           dependent.update start_date: dependent.start_date + delta, end_date: dependent.end_date + delta
         end
-      end.compact
+      end
     end
   end
 
@@ -265,7 +265,7 @@ class Todo < ApplicationRecord
         if id == latest_child.id && parent.end_date < end_date
           parent.update end_date: end_date
         end
-      end.compact
+      end
     end
   end
 
