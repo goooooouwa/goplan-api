@@ -23,7 +23,7 @@ class Todo < ApplicationRecord
                                foreign_key: 'child_id',
                                dependent: :destroy
 
-  has_many :children, through: :todo_children, source: :child, before_add: :change_repeat
+  has_many :children, through: :todo_children, source: :child, after_add: :update_repeat
   has_many :parents, through: :todo_parents, source: :todo
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
@@ -65,8 +65,9 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  before_update :shift_end_date, :change_children_start_date, if: -> { will_save_change_to_start_date? }
-  before_update :change_dependents_start_date, :change_parents_end_date, if: -> { will_save_change_to_end_date? }
+  before_update :shift_end_date, if: -> { will_save_change_to_start_date? }
+  after_update :update_dependents_timeline, :update_parents_end_date, if: -> { saved_change_to_end_date? }
+  after_update :update_children_timeline, if: -> { saved_change_to_start_date? }
 
   def self.search(query)
     scopes = []
@@ -228,13 +229,13 @@ class Todo < ApplicationRecord
     end
   end
   
-  def change_dependents_start_date
-    delta = end_date - end_date_was
+  def update_dependents_timeline
+    delta = end_date - end_date_previously_was
     if (delta / 1.days) > 1
-      self.dependents_attributes = dependents.map do |dependent|
+      dependents.each do |dependent|
         latest_dependency = dependent.dependencies.order(end_date: :desc).first
-        if id == latest_dependency.id
-          { id: dependent.id, start_date: dependent.start_date + delta }
+        if id == latest_dependency.id && dependent.start_date < end_date
+          dependent.update start_date: dependent.start_date + delta, end_date: dependent.end_date + delta
         end
       end.compact
     end
@@ -247,28 +248,28 @@ class Todo < ApplicationRecord
     end
   end
 
-  def change_children_start_date
-    delta = start_date - start_date_was
-    if (delta.abs / 1.days) > 1 && children.length > 0
-      self.children_attributes = children.map do |child|
-        { id: child.id, start_date: child.start_date + delta }
+  def update_children_timeline
+    delta = start_date - start_date_previously_was
+    if (delta.abs / 1.days) > 1
+      children.each do |child|
+        child.update start_date: child.start_date + delta, end_date: child.end_date + delta
       end
     end
   end
 
-  def change_parents_end_date
-    delta = end_date - end_date_was
+  def update_parents_end_date
+    delta = end_date - end_date_previously_was
     if (delta.abs / 1.days) > 1
-      self.parents_attributes = parents.map do |parent|
+      parents.each do |parent|
         latest_child = parent.children.order(end_date: :desc).first
         if id == latest_child.id && parent.end_date < end_date
-          { id: parent.id, end_date: end_date }
+          parent.update end_date: end_date
         end
       end.compact
     end
   end
 
-  def change_repeat(child)
-    self.repeat = true unless repeat
+  def update_repeat(_child)
+    update repeat: true unless repeat
   end
 end

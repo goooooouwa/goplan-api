@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Todo, type: :model do
   let(:todo1)  { create :todo, name: "Todo 1" }
-  let(:todo2)  { create :todo, name: "Todo 2" }
+  let(:todo2)  { create :todo_with_slightly_later_start_date_and_end_date, name: "Todo 2" }
 
   it 'can create todo with default value' do
     todo = create(:todo)
@@ -133,17 +133,17 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:status]).to include(/can't mark todo as done since dependency Todo (1|2) is still open/)
   end
 
-  it '#change_dependents_start_date should update dependents start date if end date is postponed' do
+  it '#update_dependents_timeline should update dependents timeline if end date is postponed' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
-    delta = 10.days
+    delta = 5.days
     todo.update end_date: todo.end_date + delta
     expect(todo).to be_valid
     expect(todo.dependents.first.start_date).to be_within(1.second).of dependent.start_date_previously_was + delta
   end
 
-  it '#change_dependents_start_date should not update dependents start date if end date is earlier than previous' do
+  it '#update_dependents_timeline should not update dependents timeline if end date is advanced' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
@@ -153,7 +153,33 @@ RSpec.describe Todo, type: :model do
     expect(dependent.start_date_previously_was).to eq(nil)
   end
 
-  it '#change_dependents_start_date should debounce if end date is not changed more than 1 day' do
+  it '#update_dependents_timeline should not update dependents if it is not the latest dependency or its end date is earlier than dependent start date' do
+    early_dependency = create(:todo_with_past_start_and_end_date)
+    dependent = create(:todo_with_future_start_and_end_date)
+    early_dependency.dependents << [dependent]
+    todo1.dependents << [dependent]
+    delta = 5.days
+    early_dependency.update end_date: early_dependency.end_date + delta
+    expect(early_dependency).to be_valid
+    expect(early_dependency.dependents.first.start_date_previously_was).to eq(nil)
+  end
+
+  it '#update_dependents_timeline should only update those dependents that of which it is the latest dependency and its end date is later than dependent start date' do
+    early_dependency = create(:todo_with_past_start_and_end_date)
+    dependent1 = create(:todo_with_future_start_and_end_date)
+    dependent2 = create(:todo_with_distant_start_and_end_date)
+    early_dependency.dependents << [dependent1, dependent2]
+    todo1.dependents << [dependent1, dependent2]
+    delta = 20.days
+    early_dependency.update end_date: early_dependency.end_date + delta
+    expect(early_dependency).to be_valid
+    expect(dependent1.start_date).to be_within(1.second).of dependent1.start_date_previously_was + delta
+    expect(dependent1.end_date).to be_within(1.second).of dependent1.end_date_previously_was + delta
+    expect(dependent2.start_date_previously_was).to eq(nil)
+    expect(dependent2.end_date_previously_was).to eq(nil)
+  end
+
+  it '#update_dependents_timeline should debounce if end date is not changed more than 1 day' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
@@ -170,20 +196,23 @@ RSpec.describe Todo, type: :model do
     expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
   end
 
-  it '#shift_end_date should shift task, dependents and children end date if their start date is delayed' do
+  it '#shift_end_date together with #update_dependents_timeline and #update_children_timeline should shift task, dependents and children end date if their start date is delayed' do
     todo = create(:todo_with_past_start_date_and_future_end_date)
-    todo.children << todo1
-    dependent = create(:todo_with_future_start_and_end_date)
-    todo.dependents << [dependent]
-    delta = 5.days
+    todo.children << [todo1, todo2]
+    dependent1 = create(:todo_with_future_start_and_end_date)
+    dependent2 = create(:todo_with_distant_start_and_end_date)
+    todo.dependents << [dependent1, dependent2]
+    delta = 11.days
     todo.start_date = todo.start_date + delta
     expect(todo).to be_valid
     expect(todo.save).to eq(true)
     expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
-    expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
-    expect(todo.children.first.end_date).to be_within(1.second).of todo.children.first.end_date_previously_was + delta
-    expect(todo.dependents.first.start_date).to be_within(1.second).of todo.dependents.first.start_date_previously_was + delta
-    expect(todo.dependents.first.end_date).to be_within(1.second).of todo.dependents.first.end_date_previously_was + delta
+    expect(todo1.start_date).to be_within(1.second).of todo1.start_date_previously_was + delta
+    expect(todo2.end_date).to be_within(1.second).of todo2.end_date_previously_was + delta
+    expect(dependent1.start_date).to be_within(1.second).of dependent1.start_date_previously_was + delta
+    expect(dependent1.end_date).to be_within(1.second).of dependent1.end_date_previously_was + delta
+    expect(dependent2.start_date_previously_was).to eq(nil)
+    expect(dependent2.end_date_previously_was).to eq(nil)
   end
 
   it '#shift_end_date should only shift task and children end date if their start date is advanced' do
@@ -218,31 +247,44 @@ RSpec.describe Todo, type: :model do
     expect(todo.end_date).to eq(todo.end_date_previously_was)
   end
 
-  it '#change_children_start_date should change children start date if start date is changed' do
+  it '#update_children_timeline should change children start date if start date is changed' do
     todo = create(:todo_with_past_start_date_and_future_end_date)
-    todo.children << todo1
+    todo.children << [todo1, todo2]
     delta = 8.days
     todo.update start_date: todo.start_date + delta
     expect(todo).to be_valid
-    expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
+    expect(todo1.start_date).to be_within(1.second).of todo1.start_date_previously_was + delta
+    expect(todo2.start_date).to be_within(1.second).of todo2.start_date_previously_was + delta
   end
 
-  it '#change_children_start_date should debounce if start date is not changed more than 1 day' do
-    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
+  it '#update_children_timeline should debounce if start date is not changed more than 1 day' do
+    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
     todo.update end_date: todo.end_date + 23.hours
     expect(todo).to be_valid
     expect(todo1.start_date_previously_was).to eq(nil)
+    expect(todo2.start_date_previously_was).to eq(nil)
   end
 
-  it '#change_parents_end_date should change parents end date if end date is later than parent end date', focus: true do
-    todo = create(:todo)
+  it '#update_parents_end_date should not update parent if it is not the latest child or its end date is earlier than parent end date' do
     parent = create(:todo_with_past_start_date_and_future_end_date)
-    todo.parents << parent
-    delta = 20.days
-    todo.end_date = todo.end_date + delta
-    expect(todo).to be_valid
-    expect(todo.save).to eq(true)
-    expect(todo.parents.first.end_date).to be_within(1.second).of todo.end_date
+    todo1.parents << [parent]
+    todo2.parents << [parent]
+    delta = 4.days
+    todo2.end_date = todo1.end_date + delta
+    expect(todo2).to be_valid
+    expect(todo2.save).to eq(true)
+    expect(parent.end_date_previously_was).to eq(nil)
+  end
+
+  it '#update_parents_end_date should only change those parents that of which it is the latest child and its end date is later than parent end date', focus: true do
+    parent = create(:todo_with_past_start_date_and_future_end_date)
+    todo1.parents << [parent]
+    todo2.parents << [parent]
+    delta = 6.days
+    todo2.end_date = todo1.end_date + delta
+    expect(todo2).to be_valid
+    expect(todo2.save).to eq(true)
+    expect(parent.end_date).to be_within(1.second).of todo2.end_date
   end
 
   it 'has_many :children, after_add: :update_as_repeat' do

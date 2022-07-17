@@ -30,17 +30,27 @@ FactoryBot.define do
 
     factory :todo_with_past_start_date_and_future_end_date do
       start_date { Faker::Time.between(from: Time.current - 2.days, to: Time.current - 1.days) }
-      end_date { Faker::Time.between(from: Time.current + 11.days, to: Time.current + 12.days) }
+      end_date { Faker::Time.between(from: Time.current + 14.days, to: Time.current + 15.days) }
+    end
+
+    factory :todo_with_slightly_later_start_date_and_end_date do
+      start_date { Faker::Time.between(from: Time.current + 1.days, to: Time.current + 2.days) }
+      end_date { Faker::Time.between(from: Time.current + 10.days, to: Time.current + 11.days) }
     end
 
     factory :todo_with_past_start_and_end_date do
-      start_date { Faker::Time.between(from: Time.current - 20.days, to: Time.current - 11.days) }
-      end_date { Faker::Time.between(from: Time.current - 10.days, to: Time.current - 1.days) }
+      start_date { Faker::Time.between(from: Time.current - 12.days, to: Time.current - 11.days) }
+      end_date { Faker::Time.between(from: Time.current - 2.days, to: Time.current - 1.days) }
     end
 
     factory :todo_with_future_start_and_end_date do
-      start_date { Faker::Time.between(from: Time.current + 11.days, to: Time.current + 20.days) }
-      end_date { Faker::Time.between(from: Time.current + 21.days, to: Time.current + 30.days) }
+      start_date { Faker::Time.between(from: Time.current + 11.days, to: Time.current + 12.days) }
+      end_date { Faker::Time.between(from: Time.current + 21.days, to: Time.current + 22.days) }
+    end
+
+    factory :todo_with_distant_start_and_end_date do
+      start_date { Time.zone.local(3000, 1, 1, 0, 0) }
+      end_date { Time.zone.local(3000, 1, 2, 0, 0) }
     end
   end
 end
