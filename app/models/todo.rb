@@ -23,7 +23,7 @@ class Todo < ApplicationRecord
                                foreign_key: 'child_id',
                                dependent: :destroy
 
-  has_many :children, through: :todo_children, source: :child, after_add: :update_as_repeat
+  has_many :children, through: :todo_children, source: :child, before_add: :change_repeat
   has_many :parents, through: :todo_parents, source: :todo
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
@@ -47,10 +47,12 @@ class Todo < ApplicationRecord
   validates_presence_of :start_date
   validates_presence_of :end_date
   validates_length_of :parents, maximum: 1
-  validate :end_date_cannot_earlier_than_start_date
+  validates_associated :children
+  validates_associated :dependents
   validate :start_date_cannot_earlier_than_dependencies_end_date
-  validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :start_date_cannot_earlier_than_parents_start_date
+  validate :end_date_cannot_earlier_than_start_date
+  validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :end_date_cannot_later_than_parents_end_date
   validate :end_date_cannot_earlier_than_children_end_date
   validate :todo_dependencies_cannot_include_self
@@ -63,8 +65,8 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  after_update :update_dependents_timeline, if: -> { saved_change_to_end_date? }
-  after_update :update_children_timeline, if: -> { saved_change_to_start_date? }
+  before_update :change_children_start_date, :shift_end_date, if: -> { will_save_change_to_start_date? }
+  before_update :change_dependents_start_date, if: -> { will_save_change_to_end_date? }
 
   def self.search(query)
     scopes = []
@@ -226,30 +228,33 @@ class Todo < ApplicationRecord
     end
   end
   
-  def update_dependents_timeline
-    delta = end_date - end_date_previously_was
+  def change_dependents_start_date
+    delta = end_date - end_date_was
     if (delta / 1.days) > 1
-      dependents.each do |dependent|
+      self.dependents_attributes = dependents.map do |dependent|
         latest_dependency = dependent.dependencies.order(end_date: :desc).first
         if id == latest_dependency.id
-          dependent.update(start_date: dependent.start_date + delta, end_date: dependent.end_date + delta)
+          { id: dependent.id, start_date: dependent.start_date + delta }
         end
+      end.compact
+    end
+  end
+
+  def shift_end_date
+    delta = start_date - start_date_was
+    self.end_date = end_date + delta if (delta.abs / 1.days) > 1
+  end
+
+  def change_children_start_date
+    delta = start_date - start_date_was
+    if (delta.abs / 1.days) > 1
+      self.children_attributes = children.map do |child|
+        { id: child.id, start_date: child.start_date + delta }
       end
     end
   end
 
-  def update_children_timeline
-    delta = start_date - start_date_previously_was
-    if (delta.abs / 1.days) > 1 && children.length > 0
-      children.each do |child|
-        update end_date: child.end_date + delta if end_date < child.end_date + delta
-        child.update(start_date: child.start_date + delta, end_date: child.end_date + delta)
-      end
-
-    end
-  end
-
-  def update_as_repeat(child)
-    update(repeat: true) unless repeat
+  def change_repeat(child)
+    self.repeat = true unless repeat
   end
 end

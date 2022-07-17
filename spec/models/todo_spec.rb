@@ -133,55 +133,87 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:status]).to include(/can't mark todo as done since dependency Todo (1|2) is still open/)
   end
 
-  it '#update_dependents_timeline should update dependents timeline if end date is postponed' do
+  it '#change_dependents_start_date should update dependents start date if end date is postponed' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
     delta = 10.days
     todo.update end_date: todo.end_date + delta
-    expect(dependent.start_date).to be_within(1.second).of dependent.start_date_previously_was + delta
-    expect(dependent.end_date).to be_within(1.second).of dependent.end_date_previously_was + delta
+    expect(todo).to be_valid
+    expect(todo.dependents.first.start_date).to be_within(1.second).of dependent.start_date_previously_was + delta
   end
 
-  it '#update_dependents_timeline should not update dependents timeline if end date is earlier than previous' do
+  it '#change_dependents_start_date should not update dependents start date if end date is earlier than previous' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
-    delta = 10.days
+    delta = 8.days
     todo.update end_date: todo.end_date - delta
+    expect(todo).to be_valid
     expect(dependent.start_date_previously_was).to eq(nil)
-    expect(dependent.end_date_previously_was).to eq(nil)
   end
 
-  it '#update_dependents_timeline should debounce if end date is not changed more than 1 day' do
+  it '#change_dependents_start_date should debounce if end date is not changed more than 1 day' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
     todo.update end_date: todo.end_date + 23.hours
+    expect(todo).to be_valid
     expect(dependent.start_date_previously_was).to eq(nil)
-    expect(dependent.end_date_previously_was).to eq(nil)
   end
 
-  it '#TODO: fix #update_children_timeline should update children timeline if start date is changed' do
-    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
-    delta = 10.days
+  it '#shift_end_date should shift end date if start date is changed' do
+    todo = create(:todo_with_past_start_date_and_future_end_date)
+    delta = 8.days
     todo.update start_date: todo.start_date + delta
-    expect(todo.children.first.start_date).to be_within(1.second).of todo1.start_date + delta
-    expect(todo.children.first.end_date).to be_within(1.second).of todo1.end_date + delta
+    expect(todo).to be_valid
+    expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
   end
 
-  it '#TODO: fix #update_children_timeline should postpone end date if is earlier than latest child' do
-    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
-    delta = 10.days
+  it '#shift_end_date should shift task, dependents and children end date if their start date is delayed' do
+    todo = create(:todo_with_past_start_date_and_future_end_date)
+    todo.children << todo1
+    dependent = create(:todo_with_future_start_and_end_date)
+    todo.dependents << [dependent]
+    delta = 8.days
     todo.update start_date: todo.start_date + delta
-    expect(todo.reload.end_date).to be_within(1.second).of todo1.reload.end_date + delta
+    expect(todo).to be_valid
+    expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was + delta
+    expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
+    expect(todo.children.first.end_date).to be_within(1.second).of todo.children.first.end_date_previously_was + delta
+    expect(todo.dependents.first.start_date).to be_within(1.second).of todo.dependents.first.start_date_previously_was + delta
+    expect(todo.dependents.first.end_date).to be_within(1.second).of todo.dependents.first.end_date_previously_was + delta
   end
-  
-  it 'should debounce #update_children_timeline if start date is not changed more than 1 day' do
+
+  it '#shift_end_date should only shift task and children end date if their start date is advanced' do
+    todo = create(:todo_with_past_start_date_and_future_end_date)
+    todo.children << todo1
+    dependent = create(:todo_with_future_start_and_end_date)
+    todo.dependents << [dependent]
+    delta = 8.days
+    todo.update start_date: todo.start_date - delta
+    expect(todo).to be_valid
+    expect(todo.end_date).to be_within(1.second).of todo.end_date_previously_was - delta
+    expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was - delta
+    expect(todo.children.first.end_date).to be_within(1.second).of todo.children.first.end_date_previously_was - delta
+    expect(todo.dependents.first.start_date_previously_was).to eq(nil)
+    expect(todo.dependents.first.end_date_previously_was).to eq(nil)
+  end
+
+  it '#change_children_start_date should change children start date if start date is changed' do
+    todo = create(:todo_with_past_start_date_and_future_end_date)
+    todo.children << todo1
+    delta = 8.days
+    todo.update start_date: todo.start_date + delta
+    expect(todo).to be_valid
+    expect(todo.children.first.start_date).to be_within(1.second).of todo.children.first.start_date_previously_was + delta
+  end
+
+  it '#change_children_start_date should debounce if start date is not changed more than 1 day' do
     todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1].map{ |todo| { child_id: todo.id } })
     todo.update end_date: todo.end_date + 23.hours
+    expect(todo).to be_valid
     expect(todo1.start_date_previously_was).to eq(nil)
-    expect(todo1.end_date_previously_was).to eq(nil)
   end
 
   it 'has_many :children, after_add: :update_as_repeat' do
