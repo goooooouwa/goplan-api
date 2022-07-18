@@ -63,9 +63,9 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  before_update :shift_end_date, if: -> { will_save_change_to_start_date? && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1) }
-  after_commit :update_children_timeline, on: :update, if: -> { saved_change_to_start_date? && saved_change_to_end_date? }
-  after_commit :update_dependents_timeline, :update_parents_end_date, on: :update, if: -> { saved_change_to_end_date? }
+  before_validation :shift_end_date, on: :update, if: -> { will_save_change_to_start_date? && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1) }
+  after_update :update_children_timeline, if: -> { saved_change_to_start_date? && saved_change_to_end_date? }
+  after_update :update_dependents_timeline, :update_parents_end_date, if: -> { saved_change_to_end_date? }
 
   def self.search(query)
     scopes = []
