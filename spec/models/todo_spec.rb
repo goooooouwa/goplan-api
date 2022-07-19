@@ -276,12 +276,12 @@ RSpec.describe Todo, type: :model do
     expect(parent.end_date_previously_was).to eq(nil)
   end
 
-  it '#update_parents_end_date should only change those parents that of which it is the latest child and its end date is later than parent end date', focus: true do
+  it '#update_parents_end_date should only change those parents that of which it is the latest child and its end date is later than parent end date' do
     parent = create(:todo_with_past_start_date_and_future_end_date)
     todo1.parents << [parent]
     todo2.parents << [parent]
     delta = 6.days
-    todo2.end_date = todo1.end_date + delta
+    todo2.end_date = todo2.end_date + delta
     expect(todo2).to be_valid
     expect(todo2.save).to eq(true)
     expect(parent.end_date).to be_within(1.second).of todo2.end_date
