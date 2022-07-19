@@ -28,6 +28,7 @@ class Todo < ApplicationRecord
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
 
+  default_scope { order(:start_date) }
   scope :of_project, ->(project_id) { where('todos.project_id = ?', project_id) }
   scope :name_contains, lambda { |name|
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
@@ -283,7 +284,7 @@ class Todo < ApplicationRecord
     logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
     if (delta.abs / 1.days) > 1
       logger.debug "#{name} - children: [#{children.map(&:name).join(', ')}]"
-      children.order(:start_date).each do |child|
+      children.each do |child|
         logger.debug "#{name} - update child #{child.name} timeline from #{child.start_date} - #{child.end_date} to #{child.start_date + delta} - #{child.end_date + delta}"
         child.start_date = child.start_date + delta
         child.end_date = child.end_date + delta
