@@ -87,11 +87,11 @@ class Todo < ApplicationRecord
   end
 
   def first_appearance_of_dependency_in_todos?(dependency, todos)
-    id == todos.has_dependency(dependency.id).order(:created_at).limit(1).first.try(:id)
+    id == todos.has_dependency(dependency.id).reorder(:created_at).limit(1).first.try(:id)
   end
 
   def first_appearance_of_dependent_in_todos?(dependent, todos)
-    id == todos.has_dependent(dependent.id).order(:created_at).limit(1).first.try(:id)
+    id == todos.has_dependent(dependent.id).reorder(:created_at).limit(1).first.try(:id)
   end
 
   private
@@ -255,7 +255,7 @@ class Todo < ApplicationRecord
     if (delta / 1.days) > 1
       logger.debug "#{name} - dependents: [#{dependents.map(&:name).join(', ')}]"
       dependents.each do |dependent|
-        latest_dependency = dependent.dependencies.order(end_date: :desc).first
+        latest_dependency = dependent.dependencies.reorder(end_date: :desc).first
         logger.debug "#{name} - is latest_dependency ? = #{id == latest_dependency.id} && dependent.start_date #{dependent.start_date} < end_date #{end_date} ? = #{dependent.start_date < end_date}"
         next unless id == latest_dependency.id && dependent.start_date < end_date
 
@@ -301,7 +301,7 @@ class Todo < ApplicationRecord
     if (delta.abs / 1.days) > 1
       logger.debug "#{name} - parents: [#{parents.map(&:name).join(', ')}]"
       parents.each do |parent|
-        latest_child = parent.children.order(end_date: :desc).first
+        latest_child = parent.children.reorder(end_date: :desc).first
         logger.debug "#{name} - is latest_child ? = #{id == latest_child.id} && parent.end_date #{parent.end_date} < end_date #{end_date} ? = #{parent.end_date < end_date}"
         next unless id == latest_child.id && parent.end_date < end_date
 
