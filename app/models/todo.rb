@@ -16,12 +16,12 @@ class Todo < ApplicationRecord
   accepts_nested_attributes_for :todo_dependents, :todo_dependencies, :dependencies, :dependents, allow_destroy: true
 
   has_many :todo_children, class_name: 'TodoChild',
-                             foreign_key: 'todo_id',
-                             dependent: :destroy
+                           foreign_key: 'todo_id',
+                           dependent: :destroy
 
   has_many :todo_parents, class_name: 'TodoChild',
-                               foreign_key: 'child_id',
-                               dependent: :destroy
+                          foreign_key: 'child_id',
+                          dependent: :destroy
 
   has_many :children, through: :todo_children, source: :child, after_add: :update_repeat
   has_many :parents, through: :todo_parents, source: :todo
@@ -63,7 +63,9 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
-  before_update :shift_end_date, if: -> { will_save_change_to_start_date? && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1) }
+  before_update :shift_end_date, if: lambda {
+                                       will_save_change_to_start_date? && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1)
+                                     }
   after_update :update_children_timeline, if: -> { saved_change_to_start_date? && saved_change_to_end_date? }
   after_update :update_dependents_timeline, :update_parents_end_date, if: -> { saved_change_to_end_date? }
 
@@ -84,18 +86,22 @@ class Todo < ApplicationRecord
   end
 
   def first_appearance_of_dependency_in_todos?(dependency, todos)
-    return id == todos.has_dependency(dependency.id).order(:created_at).limit(1).first.try(:id)
+    id == todos.has_dependency(dependency.id).order(:created_at).limit(1).first.try(:id)
   end
 
   def first_appearance_of_dependent_in_todos?(dependent, todos)
-    return id == todos.has_dependent(dependent.id).order(:created_at).limit(1).first.try(:id)
+    id == todos.has_dependent(dependent.id).order(:created_at).limit(1).first.try(:id)
   end
 
   private
 
   def end_date_cannot_earlier_than_start_date
     return if [start_date, end_date].any?(&:nil?)
-    errors.add(:end_date, "end date #{end_date} can't be earlier than start date #{start_date}") if end_date < start_date
+
+    if end_date < start_date
+      errors.add(:end_date,
+                 "end date #{end_date} can't be earlier than start date #{start_date}")
+    end
   end
 
   def todo_dependencies_cannot_include_self
@@ -113,7 +119,10 @@ class Todo < ApplicationRecord
 
     dependencies = Todo.find(todo_dependencies.map(&:todo_id))
     dependents.each do |dependent|
-      errors.add(:dependencies, "can't add dependent #{dependent.name} as dependency") if dependencies.include?(dependent)
+      if dependencies.include?(dependent)
+        errors.add(:dependencies,
+                   "can't add dependent #{dependent.name} as dependency")
+      end
     end
   end
 
@@ -123,7 +132,10 @@ class Todo < ApplicationRecord
     dependencies = Todo.find(todo_dependencies.map(&:todo_id))
     deps_dependencies = dependencies.map { |dependency| dependency.dependencies }.flatten.uniq
     dependencies.each do |dependency|
-      errors.add(:dependencies, "can't add dependency #{dependency.name}'s dependencies") if deps_dependencies.include?(dependency)
+      if deps_dependencies.include?(dependency)
+        errors.add(:dependencies,
+                   "can't add dependency #{dependency.name}'s dependencies")
+      end
     end
   end
 
@@ -150,10 +162,13 @@ class Todo < ApplicationRecord
     dependents = Todo.find(todo_dependents.map(&:dependent_id))
     deps_dependents = dependents.map { |dependent| dependent.dependents }.flatten.uniq
     dependents.each do |dependent|
-      errors.add(:dependents, "can't add dependent #{dependent.name}'s dependents") if deps_dependents.include?(dependent)
+      if deps_dependents.include?(dependent)
+        errors.add(:dependents,
+                   "can't add dependent #{dependent.name}'s dependents")
+      end
     end
   end
-  
+
   def cannot_mark_as_done_if_dependencies_not_done
     return unless todo_dependencies.present?
 
@@ -187,7 +202,8 @@ class Todo < ApplicationRecord
 
     latest_dependency = Todo.find(todo_dependencies.map(&:todo_id)).max_by(&:end_date)
     if start_date < latest_dependency.end_date
-      errors.add(:start_date, "start date #{start_date} can't be earlier than dependency #{latest_dependency.name}'s end date #{latest_dependency.end_date}")
+      errors.add(:start_date,
+                 "start date #{start_date} can't be earlier than dependency #{latest_dependency.name}'s end date #{latest_dependency.end_date}")
     end
   end
 
@@ -196,7 +212,8 @@ class Todo < ApplicationRecord
 
     earliest_dependent = Todo.find(todo_dependents.map(&:dependent_id)).min_by(&:start_date)
     if end_date > earliest_dependent.start_date
-      errors.add(:end_date, "end date #{end_date} can't be later than dependent #{earliest_dependent.name}'s start date #{earliest_dependent.start_date}")
+      errors.add(:end_date,
+                 "end date #{end_date} can't be later than dependent #{earliest_dependent.name}'s start date #{earliest_dependent.start_date}")
     end
   end
 
@@ -205,64 +222,92 @@ class Todo < ApplicationRecord
 
     latest_parent = Todo.find(todo_parents.map(&:todo_id)).max_by(&:start_date)
     if start_date < latest_parent.start_date
-      errors.add(:start_date, "start date #{start_date} can't be earlier than parent #{latest_parent.name}'s start date #{latest_parent.start_date}")
+      errors.add(:start_date,
+                 "start date #{start_date} can't be earlier than parent #{latest_parent.name}'s start date #{latest_parent.start_date}")
     end
   end
 
   def end_date_cannot_later_than_parents_end_date
     return unless todo_parents.present?
-    
+
     earliest_parent = Todo.find(todo_parents.map(&:todo_id)).min_by(&:end_date)
     if end_date > earliest_parent.end_date
-      errors.add(:end_date, "end date #{end_date} can't be later than parent #{earliest_parent.name}'s end date #{earliest_parent.end_date}")
+      errors.add(:end_date,
+                 "end date #{end_date} can't be later than parent #{earliest_parent.name}'s end date #{earliest_parent.end_date}")
     end
   end
 
   def end_date_cannot_earlier_than_children_end_date
     return unless todo_children.present?
-    
+
     latest_child = Todo.find(todo_children.map(&:child_id)).max_by(&:end_date)
     if end_date < latest_child.end_date
-      errors.add(:end_date, "end date #{end_date} can't be earlier than child #{latest_child.name}'s end date #{latest_child.end_date}")
+      errors.add(:end_date,
+                 "end date #{end_date} can't be earlier than child #{latest_child.name}'s end date #{latest_child.end_date}")
     end
   end
-  
+
   def update_dependents_timeline
+    logger.debug "#{name} - update_dependents_timeline:"
     delta = end_date - end_date_previously_was
+    logger.debug "#{name} - is delta #{delta} > 1.days ? = #{(delta / 1.days) > 1}"
     if (delta / 1.days) > 1
+      logger.debug "#{name} - dependents: [#{dependents.map(&:name).join(', ')}]"
       dependents.each do |dependent|
         latest_dependency = dependent.dependencies.order(end_date: :desc).first
-        if id == latest_dependency.id && dependent.start_date < end_date
-          dependent.update start_date: dependent.start_date + delta, end_date: dependent.end_date + delta
-        end
+        logger.debug "#{name} - is latest_dependency ? = #{id == latest_dependency.id} && dependent.start_date #{dependent.start_date} < end_date #{end_date} ? = #{dependent.start_date < end_date}"
+        next unless id == latest_dependency.id && dependent.start_date < end_date
+
+        logger.debug "#{name} - update dependent #{dependent.name} timeline from #{dependent.start_date} - #{dependent.end_date} to #{dependent.start_date + delta} - #{dependent.end_date + delta}"
+        dependent.start_date = dependent.start_date + delta
+        dependent.end_date = dependent.end_date + delta
+        logger.error "#{dependent.name} - validation errors: #{dependent.errors.inspect}" unless dependent.valid?
+        dependent.save
       end
     end
   end
 
   def shift_end_date
+    logger.debug "#{name} - shift_end_date:"
     delta = start_date - start_date_was
-    if ((delta.abs / 1.days) > 1)
+    logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
+    if (delta.abs / 1.days) > 1
+      logger.debug "#{name} - shift #{name} end date from #{end_date} to #{end_date + delta}"
       self.end_date = end_date + delta
     end
   end
 
   def update_children_timeline
+    logger.debug "#{name} - update_children_timeline:"
     delta = start_date - start_date_previously_was
+    logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
     if (delta.abs / 1.days) > 1
+      logger.debug "#{name} - children: [#{children.map(&:name).join(', ')}]"
       children.each do |child|
-        child.update start_date: child.start_date + delta, end_date: child.end_date + delta
+        logger.debug "#{name} - update child #{child.name} timeline from #{child.start_date} - #{child.end_date} to #{child.start_date + delta} - #{child.end_date + delta}"
+        child.start_date = child.start_date + delta
+        child.end_date = child.end_date + delta
+        logger.error "#{child.name} - validation errors: #{child.errors.inspect}" unless child.valid?
+        child.save
       end
     end
   end
 
   def update_parents_end_date
+    logger.debug "#{name} - update_parents_end_date:"
     delta = end_date - end_date_previously_was
+    logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
     if (delta.abs / 1.days) > 1
+      logger.debug "#{name} - parents: [#{parents.map(&:name).join(', ')}]"
       parents.each do |parent|
         latest_child = parent.children.order(end_date: :desc).first
-        if id == latest_child.id && parent.end_date < end_date
-          parent.update end_date: end_date
-        end
+        logger.debug "#{name} - is latest_child ? = #{id == latest_child.id} && parent.end_date #{parent.end_date} < end_date #{end_date} ? = #{parent.end_date < end_date}"
+        next unless id == latest_child.id && parent.end_date < end_date
+
+        logger.debug "#{name} - update parent #{parent.name} end date from #{parent.end_date} to #{end_date}"
+        parent.end_date = end_date
+        logger.error "#{parent.name} - validation errors: #{parent.errors.inspect}" unless parent.valid?
+        parent.save
       end
     end
   end
