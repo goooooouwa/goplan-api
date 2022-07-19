@@ -19,21 +19,21 @@ RSpec.describe Todo, type: :model do
     todo = build(:todo_with_end_date_earlier_than_start_date)
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:end_date]).to include("end date can't be earlier than start date")
+    expect(todo.errors[:end_date]).to include("end date #{todo.end_date} can't be earlier than start date #{todo.start_date}")
   end
 
   it 'validates :start_date_cannot_earlier_than_dependencies_end_date' do
     todo = build(:todo_with_very_early_start_date, todo_dependencies_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:start_date]).to include(/start date can't be earlier than dependency Todo (1|2)'s end date/)
+    expect(todo.errors[:start_date]).to include(/start date #{todo.start_date} can't be earlier than dependency Todo (1|2)'s end date (#{todo1.end_date}|#{todo2.end_date})/)
   end
 
   it 'validate :end_date_cannot_later_than_dependents_start_date, on: :create' do
     todo = build(:todo_with_very_late_end_date, todo_dependents_attributes: [todo1, todo2].map{ |todo| { dependent_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:end_date]).to include(/end date can't be later than dependent Todo (1|2)'s start date/)
+    expect(todo.errors[:end_date]).to include(/end date #{todo.end_date} can't be later than dependent Todo (1|2)'s start date (#{todo1.start_date}|#{todo2.start_date})/)
   end
 
   it 'validates :todo_dependencies_cannot_include_self' do
@@ -48,21 +48,21 @@ RSpec.describe Todo, type: :model do
     todo = build(:todo_with_past_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:start_date]).to include(/start date can't be earlier than parent Todo (1|2)'s start date/)
+    expect(todo.errors[:start_date]).to include(/start date #{todo.start_date} can't be earlier than parent Todo (1|2)'s start date (#{todo1.start_date}|#{todo2.start_date})/)
   end
 
   it 'validates :end_date_cannot_later_than_parents_end_date' do
     todo = build(:todo_with_future_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:end_date]).to include(/end date can't be later than parent Todo (1|2)'s end date/)
+    expect(todo.errors[:end_date]).to include(/end date #{todo.end_date} can't be later than parent Todo (1|2)'s end date (#{todo1.end_date}|#{todo2.end_date})/)
   end
 
   it 'validates :end_date_cannot_earlier_than_children_end_date' do
     todo = build(:todo_with_past_start_and_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
     expect(todo.save).to eq(false)
     expect(todo).to_not be_valid
-    expect(todo.errors[:end_date]).to include(/end date can't be earlier than child Todo (1|2)'s end date/)
+    expect(todo.errors[:end_date]).to include(/end date #{todo.end_date} can't be earlier than child Todo (1|2)'s end date (#{todo1.end_date}|#{todo2.end_date})/)
   end
 
   it 'validates :todo_dependencies_cannot_include_dependents' do
