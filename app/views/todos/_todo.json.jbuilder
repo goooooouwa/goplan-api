@@ -17,7 +17,7 @@ json.dependents do
   end
 end
 json.parents do
-  if depth < 1
+  if depth < 2
     json.array! todo.parents, partial: 'todos/todo', locals: { depth: depth + 1 }, as: :todo
   else
     json.array! []
