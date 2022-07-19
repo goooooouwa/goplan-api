@@ -283,7 +283,7 @@ class Todo < ApplicationRecord
     logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
     if (delta.abs / 1.days) > 1
       logger.debug "#{name} - children: [#{children.map(&:name).join(', ')}]"
-      children.each do |child|
+      children.order(:start_date).each do |child|
         logger.debug "#{name} - update child #{child.name} timeline from #{child.start_date} - #{child.end_date} to #{child.start_date + delta} - #{child.end_date + delta}"
         child.start_date = child.start_date + delta
         child.end_date = child.end_date + delta
