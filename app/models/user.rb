@@ -15,7 +15,7 @@ class User < ApplicationRecord
            foreign_key: :resource_owner_id,
            dependent: :delete_all # or :destroy if you need callbacks
 
-  has_many :projects
+  has_many :projects, dependent: :destroy
   has_many :todos, through: :projects
 
   def self.from_omniauth(auth)

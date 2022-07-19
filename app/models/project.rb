@@ -1,5 +1,5 @@
 class Project < ApplicationRecord
-  has_many :todos
+  has_many :todos, dependent: :destroy
   belongs_to :user
 
   scope :name_contains, ->(name) { where('lower(projects.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%') }
