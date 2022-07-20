@@ -23,7 +23,7 @@ class Todo < ApplicationRecord
                           foreign_key: 'child_id',
                           dependent: :destroy
 
-  has_many :children, through: :todo_children, source: :child, after_add: :update_repeat, dependent: :destroy
+  has_many :children, through: :todo_children, source: :child, after_add: :update_repeat
   has_many :parents, through: :todo_parents, source: :todo
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
