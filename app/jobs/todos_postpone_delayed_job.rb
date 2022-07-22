@@ -2,8 +2,10 @@ class TodosPostponeDelayedJob < ApplicationJob
   queue_as :default
 
   def perform(*args)
-    Todo.where.missing(:todo_dependencies).due_date_before(Time.current).in_batches.each_record do |root_todo|
-      root_todo.update(end_date: Time.current)
+    now = Time.current
+    Todo.independent.undone.end_date_before(now).in_batches.each_record do |independent|
+      delta = now - end_date
+      independent.update(end_date: now) if (delta / 1.days) > 1
     end
   end
 end
