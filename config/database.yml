@@ -24,4 +24,5 @@ test:
 production:
   <<: *default
   database: goplan_api_production
+  host: db
 
