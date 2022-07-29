@@ -25,4 +25,6 @@ production:
   <<: *default
   database: goplan_api_production
   host: db
+  username: postgres
+  password: <%= ENV['POSTGRES_PASSWORD'] %>
 

@@ -4,12 +4,19 @@ volumes:
 
 services:
   app:
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: ./docker/app/Dockerfile
+      args:
+        - GOPLAN_WEB_BASE_URL=${GOPLAN_WEB_BASE_URL}
+        - SECRET_KEY_BASE=${SECRET_KEY_BASE}
     depends_on:
       - db
   db:
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     image: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -20,4 +27,4 @@ services:
     depends_on:
       - app
     ports:
-      - 80:80
+      - 8081:80
