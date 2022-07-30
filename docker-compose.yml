@@ -36,4 +36,4 @@ services:
     depends_on:
       - app
     ports:
-      - 8081:80
+      - ${PORT}:80
