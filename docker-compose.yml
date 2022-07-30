@@ -1,6 +1,7 @@
 version: '3'
 volumes:
   postgres_data: {}
+  static_files: {}
 
 services:
   app:
@@ -21,6 +22,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - SECRET_KEY_BASE=${SECRET_KEY_BASE}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - static_files:/app/public
     depends_on:
       - db
   db:
@@ -33,6 +36,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/web/Dockerfile
+    volumes:
+      - static_files:/var/www/app/public
     depends_on:
       - app
     ports:

@@ -6,7 +6,7 @@ RUN apt-get update -qq && apt-get install -qq --no-install-recommends \
     nodejs \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
-RUN npm install -g yarn@1
+# RUN npm install -g yarn@1
 
 # Set an environment variable where the Rails app is installed to inside of Docker image:
 ENV RAILS_ROOT /app

@@ -4,7 +4,7 @@ FROM nginx
 RUN apt-get update -qq && apt-get -y install apache2-utils
 
 # establish where Nginx should look for files
-ENV RAILS_ROOT /app
+ENV RAILS_ROOT /var/www/app
 
 # Set our working directory inside the image
 WORKDIR $RAILS_ROOT
@@ -13,7 +13,7 @@ WORKDIR $RAILS_ROOT
 RUN mkdir log
 
 # copy over static assets
-COPY public public/
+# COPY /public public/
 
 # Copy Nginx config template
 COPY docker/web/nginx.conf /tmp/docker.nginx
