@@ -4,20 +4,29 @@ volumes:
 
 services:
   app:
-    env_file:
-      - .env
     build:
       context: .
       dockerfile: ./docker/app/Dockerfile
       args:
         - GOPLAN_WEB_BASE_URL=${GOPLAN_WEB_BASE_URL}
         - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+    environment:
+      - GITHUB_KEY=${GITHUB_KEY}
+      - GITHUB_SECRET=${GITHUB_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SMTP_USER_NAME=${SMTP_USER_NAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GOPLAN_WEB_BASE_URL=${GOPLAN_WEB_BASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
   db:
+    image: postgres
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    image: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
   web:
