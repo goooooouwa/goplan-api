@@ -20,7 +20,5 @@ module GoplanApi
     # config.eager_load_paths << Rails.root.join("extras")
 
     config.active_job.queue_adapter = :sidekiq
-
-    config.action_controller.forgery_protection_origin_check = false
   end
 end
