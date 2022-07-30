@@ -22,7 +22,7 @@ COPY docker/web/nginx.conf /tmp/docker.nginx
 # put the final config in its place
 RUN envsubst '$RAILS_ROOT' < /tmp/docker.nginx > /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 443
 
 # Use the "exec" form of CMD so Nginx shuts down gracefully on SIGTERM (i.e. `docker stop`)
 CMD [ "nginx", "-g", "daemon off;" ]
