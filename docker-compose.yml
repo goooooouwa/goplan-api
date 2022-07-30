@@ -38,6 +38,7 @@ services:
       dockerfile: ./docker/web/Dockerfile
     volumes:
       - static_files:/var/www/app/public
+      - ~/.acme.sh/goooooouwa.tk/:/etc/letsencrypt/
     depends_on:
       - app
     ports:
