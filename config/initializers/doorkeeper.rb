@@ -421,6 +421,10 @@ Doorkeeper.configure do
   #   client.superapp? or resource_owner.admin?
   # end
 
+  skip_authorization do |resource_owner, client|
+    true
+  end
+
   # Configure custom constraints for the Token Introspection request.
   # By default this configuration option allows to introspect a token by another
   # token of the same application, OR to introspect the token that belongs to
