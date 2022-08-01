@@ -7,7 +7,6 @@ FactoryBot.define do
 
     factory :todo_with_full_info do
       description { Faker::Lorem.sentence }
-      time_span { Faker::Number.number(digits: 5) }
       instance_time_span { Faker::Number.number(digits: 5) }
       repeat { Faker::Boolean.boolean }
       repeat_period { 'week' }
