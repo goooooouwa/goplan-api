@@ -179,13 +179,21 @@ RSpec.describe Todo, type: :model do
     expect(dependent2.end_date_previously_was).to eq(nil)
   end
 
-  it '#update_dependents_timeline should debounce if end date is not changed more than 1 day' do
+  it '#update_dependents_timeline should debounce if end date is changed less than 1 day' do
     todo = create(:todo)
     dependent = create(:todo_with_future_start_and_end_date)
     todo.dependents << [dependent]
     todo.update end_date: todo.end_date + 23.hours
     expect(todo).to be_valid
     expect(dependent.start_date_previously_was).to eq(nil)
+  end
+
+  it '#update_dependents_timeline should not debounce if end date is changed more than or equal to 1 day' do
+    todo1.dependents << [todo2]
+    delta = 24.hours
+    todo1.update end_date: todo1.end_date + delta
+    expect(todo1).to be_valid
+    expect(todo2.start_date).to be_within(1.second).of todo2.start_date_previously_was + delta
   end
 
   it '#shift_end_date should shift end date if start date is changed' do
@@ -257,12 +265,23 @@ RSpec.describe Todo, type: :model do
     expect(todo2.start_date).to be_within(1.second).of todo2.start_date_previously_was + delta
   end
 
-  it '#update_children_timeline should debounce if start date is not changed more than 1 day' do
+  it '#update_children_timeline should debounce if start date is changed less than 1 day' do
     todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
-    todo.update end_date: todo.end_date + 23.hours
+    todo.update start_date: todo.start_date + 23.hours
     expect(todo).to be_valid
     expect(todo1.start_date_previously_was).to eq(nil)
     expect(todo2.start_date_previously_was).to eq(nil)
+  end
+
+  it '#update_children_timeline should not debounce if start date is changed more than or equal to 1 day' do
+    todo = create(:todo_with_past_start_date_and_future_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
+    delta = 24.hours
+    todo.update start_date: todo.start_date + delta
+    expect(todo).to be_valid
+    puts todo.children.first.start_date
+    puts todo1.start_date
+    expect(todo.children.first.start_date).to be_within(1.second).of todo1.start_date + delta
+    expect(todo.children.last.start_date).to be_within(1.second).of todo2.start_date + delta
   end
 
   it '#update_parents_end_date should not update parent if it is not the latest child or its end date is earlier than parent end date' do

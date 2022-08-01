@@ -252,8 +252,8 @@ class Todo < ApplicationRecord
   def update_dependents_timeline
     logger.debug "#{name} - update_dependents_timeline:"
     delta = end_date - end_date_previously_was
-    logger.debug "#{name} - is delta #{delta} > 1.days ? = #{(delta / 1.days) > 1}"
-    if (delta / 1.days) > 1
+    logger.debug "#{name} - is delta #{delta} >= 1.days ? = #{(delta / 1.days) >= 1}"
+    if (delta / 1.days) >= 1
       logger.debug "#{name} - dependents: [#{dependents.map(&:name).join(', ')}]"
       dependents.each do |dependent|
         latest_dependency = dependent.dependencies.reorder(end_date: :desc).first
@@ -272,8 +272,8 @@ class Todo < ApplicationRecord
   def shift_end_date
     logger.debug "#{name} - shift_end_date:"
     delta = start_date - start_date_was
-    logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
-    if (delta.abs / 1.days) > 1
+    logger.debug "#{name} - is delta.abs #{delta} >= 1.days ? = #{(delta.abs / 1.days) >= 1}"
+    if (delta.abs / 1.days) >= 1
       logger.debug "#{name} - shift #{name} end date from #{end_date} to #{end_date + delta}"
       self.end_date = end_date + delta
     end
@@ -282,8 +282,8 @@ class Todo < ApplicationRecord
   def update_children_timeline
     logger.debug "#{name} - update_children_timeline:"
     delta = start_date - start_date_previously_was
-    logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
-    if (delta.abs / 1.days) > 1
+    logger.debug "#{name} - is delta.abs #{delta} >= 1.days ? = #{(delta.abs / 1.days) >= 1}"
+    if (delta.abs / 1.days) >= 1
       logger.debug "#{name} - children: [#{children.map(&:name).join(', ')}]"
       children.each do |child|
         logger.debug "#{name} - update child #{child.name} timeline from #{child.start_date} - #{child.end_date} to #{child.start_date + delta} - #{child.end_date + delta}"
@@ -298,8 +298,8 @@ class Todo < ApplicationRecord
   def update_parents_end_date
     logger.debug "#{name} - update_parents_end_date:"
     delta = end_date - end_date_previously_was
-    logger.debug "#{name} - is delta.abs #{delta} > 1.days ? = #{(delta.abs / 1.days) > 1}"
-    if (delta.abs / 1.days) > 1
+    logger.debug "#{name} - is delta.abs #{delta} >= 1.days ? = #{(delta.abs / 1.days) >= 1}"
+    if (delta.abs / 1.days) >= 1
       logger.debug "#{name} - parents: [#{parents.map(&:name).join(', ')}]"
       parents.each do |parent|
         latest_child = parent.children.reorder(end_date: :desc).first

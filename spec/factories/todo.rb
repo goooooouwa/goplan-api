@@ -2,8 +2,8 @@ FactoryBot.define do
   factory :todo, aliases: %i[dependent dependencies] do
     project
     name { Faker::Lorem.sentence }
-    start_date { Faker::Time.between(from: Time.current - 1, to: Time.current) }
-    end_date { Faker::Time.between(from: start_date + 9.days, to: start_date + 10.days) }
+    start_date { '2022-01-01' }
+    end_date { '2022-01-10' }
 
     factory :todo_with_full_info do
       description { Faker::Lorem.sentence }
@@ -16,41 +16,41 @@ FactoryBot.define do
     end
 
     factory :todo_with_end_date_earlier_than_start_date do
-      start_date { Faker::Time.between(from: Time.current - 1, to: Time.current) }
-      end_date { Faker::Time.between(from: start_date - 10.days, to: start_date - 1.days) }
+      start_date { '2022-01-10' }
+      end_date { '2022-01-01' }
     end
 
     factory :todo_with_very_early_start_date do
-      start_date { Time.zone.local(1979, 1, 1, 0, 0) }
+      start_date { '1979-01-01' }
     end
 
     factory :todo_with_very_late_end_date do
-      end_date { Time.zone.local(3000, 1, 1, 0, 0) }
+      end_date { '3000-01-01' }
     end
 
     factory :todo_with_past_start_date_and_future_end_date do
-      start_date { Faker::Time.between(from: Time.current - 2.days, to: Time.current - 1.days) }
-      end_date { Faker::Time.between(from: Time.current + 14.days, to: Time.current + 15.days) }
+      start_date { '2021-12-31' }
+      end_date { '2022-01-15' }
     end
 
     factory :todo_with_slightly_later_start_date_and_end_date do
-      start_date { Faker::Time.between(from: Time.current + 1.days, to: Time.current + 2.days) }
-      end_date { Faker::Time.between(from: Time.current + 10.days, to: Time.current + 11.days) }
+      start_date { '2022-01-02' }
+      end_date { '2022-01-11' }
     end
 
     factory :todo_with_past_start_and_end_date do
-      start_date { Faker::Time.between(from: Time.current - 12.days, to: Time.current - 11.days) }
-      end_date { Faker::Time.between(from: Time.current - 2.days, to: Time.current - 1.days) }
+      start_date { '2021-12-21' }
+      end_date { '2021-12-31' }
     end
 
     factory :todo_with_future_start_and_end_date do
-      start_date { Faker::Time.between(from: Time.current + 11.days, to: Time.current + 12.days) }
-      end_date { Faker::Time.between(from: Time.current + 21.days, to: Time.current + 22.days) }
+      start_date { '2022-01-11' }
+      end_date { '2022-01-20' }
     end
 
     factory :todo_with_distant_start_and_end_date do
-      start_date { Time.zone.local(3000, 1, 1, 0, 0) }
-      end_date { Time.zone.local(3000, 1, 2, 0, 0) }
+      start_date { '3000-01-01' }
+      end_date { '3000-01-02' }
     end
   end
 end
