@@ -1,6 +1,6 @@
 depth = 0 if depth.nil?
 
-json.merge! todo.attributes
+json.(todo, :id, :project_id, :name, :description, :start_date, :end_date, :repeat, :repeat_period, :repeat_times, :instance_time_span, :created_at, :updated_at, :status)
 json.project todo.project, partial: 'projects/project', as: :project
 json.dependencies do
   if depth < 1
