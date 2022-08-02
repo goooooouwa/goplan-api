@@ -90,7 +90,7 @@ class TodosController < ApiController
   def todo_params
     params.require(:todo).permit(:project_id, :name, :description, :color, :status, :start_date, :end_date, :repeat,
                                  :repeat_period, :repeat_times, :instance_time_span,
-                                 children_attributes: [:id, :project_id, :name, :start_date, :end_date, :status, :instance_time_span, :_destroy],
+                                 children_attributes: [:id, :project_id, :name, :color, :start_date, :end_date, :status, :instance_time_span, :_destroy],
                                  todo_dependents_attributes: [:id, :dependent_id, :_destroy],
                                  todo_dependencies_attributes: [:id, :todo_id, :_destroy])
   end
