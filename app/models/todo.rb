@@ -1,4 +1,9 @@
 class Todo < ApplicationRecord
+  attribute :repeat_period, :string, default: 'day'
+  attribute :repeat_times, :integer, default: 1
+  attribute :instance_time_span, :integer, default: 1
+  attribute :color, :string, default: 'primary.main'
+
   belongs_to :project
   delegate :user, to: :project, allow_nil: true
 
