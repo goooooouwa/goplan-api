@@ -269,7 +269,7 @@ class Todo < ApplicationRecord
         dependent.start_date = dependent.start_date + delta
         dependent.end_date = dependent.end_date + delta
         logger.error "#{dependent.name} - validation errors: #{dependent.errors.inspect}" unless dependent.valid?
-        dependent.save
+        dependent.save!
       end
     end
   end
@@ -295,7 +295,7 @@ class Todo < ApplicationRecord
         child.start_date = child.start_date + delta
         child.end_date = child.end_date + delta
         logger.error "#{child.name} - validation errors: #{child.errors.inspect}" unless child.valid?
-        child.save
+        child.save!
       end
     end
   end
@@ -314,7 +314,7 @@ class Todo < ApplicationRecord
         logger.debug "#{name} - update parent #{parent.name} end date from #{parent.end_date} to #{end_date}"
         parent.end_date = end_date
         logger.error "#{parent.name} - validation errors: #{parent.errors.inspect}" unless parent.valid?
-        parent.save
+        parent.save!
       end
     end
   end
