@@ -51,6 +51,13 @@ RSpec.describe Todo, type: :model do
     expect(todo.errors[:start_date]).to include(/start date #{todo.start_date} can't be earlier than parent Todo (1|2)'s start date (#{todo1.start_date}|#{todo2.start_date})/)
   end
 
+  it 'validate :start_date_cannot_later_than_children_start_date' do
+    todo = build(:todo_with_future_start_and_end_date, todo_children_attributes: [todo1, todo2].map{ |todo| { child_id: todo.id } })
+    expect(todo.save).to eq(false)
+    expect(todo).to_not be_valid
+    expect(todo.errors[:start_date]).to include(/start date #{todo.start_date} can't be later than child Todo (1|2)'s start date (#{todo1.start_date}|#{todo2.start_date})/)
+  end
+
   it 'validates :end_date_cannot_later_than_parents_end_date' do
     todo = build(:todo_with_future_start_and_end_date, todo_parents_attributes: [todo1, todo2].map{ |todo| { todo_id: todo.id } })
     expect(todo.save).to eq(false)
