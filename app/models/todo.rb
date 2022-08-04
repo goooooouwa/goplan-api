@@ -28,7 +28,7 @@ class Todo < ApplicationRecord
                           foreign_key: 'child_id',
                           dependent: :destroy
 
-  has_many :children, through: :todo_children, source: :child, after_add: :update_repeat
+  has_many :children, through: :todo_children, source: :child, before_add: :change_child_and_repeat
   has_many :parents, through: :todo_parents, source: :todo
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
@@ -330,7 +330,9 @@ class Todo < ApplicationRecord
     end
   end
 
-  def update_repeat(_child)
-    update repeat: true unless repeat
+  def change_child_and_repeat(child)
+    child.start_date = self.start_date
+    child.end_date = self.end_date
+    self.repeat = true unless repeat
   end
 end
