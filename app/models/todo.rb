@@ -337,10 +337,10 @@ class Todo < ApplicationRecord
   def initialize_child(child)
     if id.nil?
       child.start_date = start_date
-      child.end_date = end_date
+      child.end_date = start_date
     else
       child.start_date = start_date_was
-      child.end_date = end_date_was
+      child.end_date = start_date_was
     end
   end
 end
