@@ -1,6 +1,12 @@
 class Todo < ApplicationRecord
-  attribute :repeat_period, :string, default: 'day'
-  attribute :repeat_times, :integer, default: 1
+  IN_REPEAT_PERIOD = {
+    'day' => :in_days,
+    'week' => :in_weeks,
+    'month' => :in_months,
+    'year' => :in_years,
+  }
+
+  attribute :repeat_period, :string, default: 'week'
   attribute :instance_time_span, :integer, default: 1
   attribute :color, :string, default: 'primary.main'
 
@@ -28,7 +34,7 @@ class Todo < ApplicationRecord
                           foreign_key: 'child_id',
                           dependent: :destroy
 
-  has_many :children, through: :todo_children, source: :child, before_add: [:change_as_repeat, :initialize_child]
+  has_many :children, through: :todo_children, source: :child, before_add: :change_as_repeat
   has_many :parents, through: :todo_parents, source: :todo
 
   accepts_nested_attributes_for :todo_children, :todo_parents, :parents, :children, allow_destroy: true
@@ -71,6 +77,7 @@ class Todo < ApplicationRecord
   validate :todo_parents_cannot_include_self
   validate :cannot_mark_as_done_if_dependencies_not_done, if: -> { will_save_change_to_attribute?(:status, to: true) }
 
+  before_create :generate_punched_tasks, if: -> { repeat_times > 0 }
   before_update :shift_end_date, if: lambda {
                                        will_save_change_to_start_date? && (!will_save_change_to_end_date? || (end_date - end_date_was).abs / 1.days < 1)
                                      }
@@ -265,6 +272,28 @@ class Todo < ApplicationRecord
     end
   end
 
+  def generate_punched_tasks
+    number_of_repeat_periods = (end_date - start_date).seconds.public_send(IN_REPEAT_PERIOD[repeat_period]).ceil
+    interval_of_punched_tasks = (1.public_send(repeat_period) / repeat_times).in_days.floor.days
+    number_of_punched_tasks = repeat_times * number_of_repeat_periods
+
+    children_attributes = []
+    number_of_punched_tasks.times do |i|
+      punched_task_start_date = start_date + i * interval_of_punched_tasks
+      break if punched_task_start_date > end_date
+
+      children_attributes << {
+        name: "#{punched_task_start_date.strftime('%m/%d/%Y')}",
+        project_id: project_id,
+        start_date: punched_task_start_date,
+        end_date: punched_task_start_date,
+        color: color
+      }
+    end
+
+    self.children_attributes = children_attributes
+  end
+
   def update_dependents_timeline
     logger.debug "#{name} - update_dependents_timeline:"
     delta = end_date - end_date_previously_was
@@ -332,15 +361,5 @@ class Todo < ApplicationRecord
 
   def change_as_repeat(child)
     self.repeat = true unless repeat
-  end
-
-  def initialize_child(child)
-    if id.nil?
-      child.start_date = start_date
-      child.end_date = start_date
-    else
-      child.start_date = start_date_was
-      child.end_date = start_date_was
-    end
   end
 end
