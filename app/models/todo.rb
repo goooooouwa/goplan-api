@@ -283,7 +283,7 @@ class Todo < ApplicationRecord
       break if punched_task_start_date > end_date
 
       children_attributes << {
-        name: "#{punched_task_start_date.strftime('%m/%d/%Y')}",
+        name: "##{i + 1}",
         project_id: project_id,
         start_date: punched_task_start_date,
         end_date: punched_task_start_date,
