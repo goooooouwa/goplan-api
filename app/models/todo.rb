@@ -274,7 +274,7 @@ class Todo < ApplicationRecord
 
   def generate_punched_tasks
     number_of_repeat_periods = (end_date - start_date).seconds.public_send(IN_REPEAT_PERIOD[repeat_period]).ceil
-    interval_of_punched_tasks = (1.public_send(repeat_period) / repeat_times).in_days.floor.days
+    interval_of_punched_tasks = (1.public_send(repeat_period) / repeat_times).in_days.days
     number_of_punched_tasks = repeat_times * number_of_repeat_periods
 
     children_attributes = []
