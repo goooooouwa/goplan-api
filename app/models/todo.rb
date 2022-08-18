@@ -44,6 +44,10 @@ class Todo < ApplicationRecord
   scope :name_contains, lambda { |name|
                           where('lower(todos.name) LIKE ?', '%' + Todo.sanitize_sql_like(name).downcase + '%')
                         }
+  scope :within_year, ->(year) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.strptime(year, '%Y').beginning_of_year, Date.strptime(year, '%Y').end_of_year) }
+  # scope :within_quarter, ->(quarter) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.parse(quarter).beginning_of_quarter, Date.parse(quarter).end_of_quarter) }
+  scope :within_month, ->(month) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.strptime(month, '%Y%m').beginning_of_month, Date.strptime(month, '%Y%m').end_of_month) }
+  scope :within_week, ->(week) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.strptime(week, '%YW%W').beginning_of_week, Date.strptime(week, '%YW%W').end_of_week) }
   scope :has_dependent, ->(dependent_id) { joins(:dependents).where('dependents.id' => dependent_id) }
   scope :has_dependency, ->(dependency_id) { joins(:dependencies).where('dependencies.id' => dependency_id) }
   scope :done, -> { where(status: true) }
@@ -88,6 +92,10 @@ class Todo < ApplicationRecord
     scopes = []
     scopes.push([:of_project, query[:project_id]]) if query.try(:[], :project_id)
     scopes.push([:name_contains, query[:name]]) if query.try(:[], :name)
+    scopes.push([:within_year, query[:year]]) if query.try(:[], :year)
+    # scopes.push([:within_quarter, query[:quarter]]) if query.try(:[], :quarter)
+    scopes.push([:within_month, query[:month]]) if query.try(:[], :month)
+    scopes.push([:within_week, query[:week]]) if query.try(:[], :week)
 
     if scopes.empty?
       all
