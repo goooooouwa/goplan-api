@@ -52,6 +52,7 @@ class Todo < ApplicationRecord
   scope :has_dependency, ->(dependency_id) { joins(:dependencies).where('dependencies.id' => dependency_id) }
   scope :done, -> { where(status: true) }
   scope :undone, -> { where(status: false) }
+  scope :includes_associations, -> { includes(self.build_association_array) }
   scope :unactionable, -> { left_outer_joins(:dependencies).where(status: false, dependencies: { status: false }) }
   scope :actionable, -> { where.not(id: unactionable) }
   scope :dependentless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
@@ -117,6 +118,29 @@ class Todo < ApplicationRecord
   end
 
   private
+
+  def self.build_association_array(depth=0)
+    association_array = []
+    association_array.push(:project)
+
+    if depth < 1
+      association_array.push({ dependencies: build_association_array(depth + 1) })
+      association_array.push({ dependents: build_association_array(depth + 1) })
+    else
+      association_array.push(:dependencies)
+      association_array.push(:dependents)
+    end
+
+    if depth < 5
+      association_array.push({ parents: build_association_array(depth + 1) })
+      association_array.push({ children: build_association_array(depth + 1) })
+    else
+      association_array.push(:parents)
+      association_array.push(:children)
+    end
+
+    association_array
+  end
 
   def end_date_cannot_earlier_than_start_date
     return if [start_date, end_date].any?(&:nil?)
