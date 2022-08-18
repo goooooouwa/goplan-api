@@ -89,6 +89,7 @@ class TodosController < ApiController
   # Only allow a list of trusted parameters through.
   def todo_params
     params.require(:todo).permit(:project_id, :name, :description, :color, :status, :start_date, :end_date, :repeat,
+                                 :week, :month, :quarter, :year,
                                  :repeat_period, :repeat_times, :instance_time_span,
                                  children_attributes: [:id, :project_id, :name, :color, :start_date, :end_date, :status, :_destroy],
                                  todo_dependents_attributes: [:id, :dependent_id, :_destroy],
