@@ -47,7 +47,7 @@ class Todo < ApplicationRecord
   scope :within_year, ->(year) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.parse(year).beginning_of_year, Date.parse(year).end_of_year) }
   scope :within_quarter, ->(quarter) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.parse(quarter).beginning_of_quarter, Date.parse(quarter).end_of_quarter) }
   scope :within_month, ->(month) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.parse(month).beginning_of_month, Date.parse(month).end_of_month) }
-  scope :within_week, ->(week) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.parse(week).beginning_of_week, Date.parse(week).end_of_week) }
+  scope :within_week, ->(week) { where.not('todos.end_date < ? OR todos.start_date > ?', Date.parse(week).beginning_of_week(start_day = :sunday), Date.parse(week).end_of_week(start_day = :sunday)) }
   scope :has_dependent, ->(dependent_id) { joins(:dependents).where('dependents.id' => dependent_id) }
   scope :has_dependency, ->(dependency_id) { joins(:dependencies).where('dependencies.id' => dependency_id) }
   scope :done, -> { where(status: true) }
