@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   }
 
   resources :todos do
-    collection do
+    member do
       get 'dependencies', to: 'todos#dependencies'
       get 'dependents', to: 'todos#dependents'
       get 'children', to: 'todos#children'

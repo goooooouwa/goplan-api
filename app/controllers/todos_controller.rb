@@ -1,25 +1,25 @@
 class TodosController < ApiController
   before_action -> { doorkeeper_authorize! :write }
-  before_action :set_todo, only: %i[show update update_dependencies destroy]
+  before_action :set_todo, only: %i[show update children dependencies dependents destroy]
 
   # GET /todos
   def index
     @todos = current_resource_owner.todos.search(params)
   end
 
-  # GET /todos/children
+  # GET /todos/1/children
   def children
-    @todos = current_resource_owner.todos.search(params)
+    @todos = @todo.children.search(params)
   end
 
-  # GET /todos/dependencies
+  # GET /todos/1/dependencies
   def dependencies
-    @todos = current_resource_owner.todos.search(params)
+    @todos = @todo.dependencies.search(params)
   end
 
-  # GET /todos/dependents
+  # GET /todos/1/dependents
   def dependents
-    @todos = current_resource_owner.todos.search(params)
+    @todos = @todo.dependents.search(params)
   end
 
   # GET /todos/1

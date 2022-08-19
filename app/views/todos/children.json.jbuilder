@@ -1,1 +1,1 @@
-json.array! @todos.parentless.undone.includes_associations.reorder(created_at: :desc) + @todos.parentless.done.includes_associations.reorder(updated_at: :desc), partial: 'todos/todo_with_children', as: :todo, locals: { depth: 0 }
+json.array! @todos.includes_associations, partial: 'todos/todo', as: :todo
