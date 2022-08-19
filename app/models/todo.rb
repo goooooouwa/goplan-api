@@ -52,7 +52,7 @@ class Todo < ApplicationRecord
   scope :has_dependency, ->(dependency_id) { joins(:dependencies).where('dependencies.id' => dependency_id) }
   scope :done, -> { where(status: true) }
   scope :undone, -> { where(status: false) }
-  scope :includes_associations, -> { includes(self.build_association_array) }
+  scope :includes_associations, -> { includes(:project, :dependencies, :dependents, :parents, :children) }
   scope :unactionable, -> { left_outer_joins(:dependencies).where(status: false, dependencies: { status: false }) }
   scope :actionable, -> { where.not(id: unactionable) }
   scope :dependentless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
