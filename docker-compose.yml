@@ -26,12 +26,16 @@ services:
       - static_files:/app/public
     depends_on:
       - db
+    restart: unless-stopped
+
   db:
     image: postgres
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   web:
     build:
       context: .
@@ -43,3 +47,4 @@ services:
       - app
     ports:
       - ${PORT}:443
+    restart: unless-stopped
