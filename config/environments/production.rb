@@ -64,7 +64,7 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
-  config.action_mailer.default_url_options = { host: 'https://goplan-api.herokuapp.com/', port: 5000 }
+  config.action_mailer.default_url_options = { host: ENV['ACTION_MAILER_DEFAULT_HOST'], port: ENV['ACTION_MAILER_DEFAULT_PORT'] }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
