@@ -35,7 +35,8 @@
 .DS_Store
 .vscode/
 .env
-.env.production
+.env.local
+.env.development.local
 
 /public/packs
 /public/packs-test
