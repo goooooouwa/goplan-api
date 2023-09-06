@@ -5,8 +5,8 @@ GoPlan web client: [https://github.com/goooooouwa/goplan-web](https://github.com
 ## How to setup local development environment
 
 1. `bundle install`
-2. `cp .env.development.example .env.local`
-3. Modify `.env.local` to suit your local development preferences
+2. `cp .env.development.example .env`
+3. Modify `.env` to suit your local development preferences
 4. `bundle exec rake db:create`
 5. `bundle exec rake db:migrate`
 6. `bundle exec rake db:seed`
