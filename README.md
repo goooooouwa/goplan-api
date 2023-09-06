@@ -29,6 +29,10 @@ This will run the server in the development mode with the port you specify.
 4. Open the API server login page, e.g. http://localhost:8000/users/sign_in to sign up a user account
 5. Start GoPlan Web server, login and start using GoPlan.
 
+## How to test
+
+`bundle exec rspec`
+
 # README
 
 This README would normally document whatever steps are necessary to get the
