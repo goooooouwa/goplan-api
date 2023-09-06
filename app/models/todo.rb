@@ -6,7 +6,7 @@ class Todo < ApplicationRecord
     'year' => :in_years,
   }
 
-  attribute :repeat_period, :string, default: 'week'
+  attribute :repeat_period, :string, default: 'day'
   attribute :instance_time_span, :integer, default: 1
   attribute :color, :string, default: 'primary.main'
 
