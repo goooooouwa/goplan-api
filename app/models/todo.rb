@@ -57,8 +57,8 @@ class Todo < ApplicationRecord
   scope :actionable, -> { where.not(id: unactionable) }
   scope :dependentless, -> { left_outer_joins(:dependents).where(dependents: { id: nil }) }
   scope :independent, -> { left_outer_joins(:dependencies).where(dependencies: { id: nil }) }
-  scope :childless, -> { left_outer_joins(:children).where(children: { id: nil }) }
-  scope :parentless, -> { left_outer_joins(:parents).where(parents: { id: nil }) }
+  scope :leaf, -> { left_outer_joins(:children).where(children: { id: nil }) }
+  scope :root, -> { left_outer_joins(:parents).where(parents: { id: nil }) }
   scope :end_date_before, ->(date) { where('end_date <= ?', date) }
 
   validates_presence_of :name
@@ -91,6 +91,7 @@ class Todo < ApplicationRecord
 
   def self.search(query)
     scopes = []
+    scopes.push([:root]) if query.try(:[], :root)
     scopes.push([:of_project, query[:project_id]]) if query.try(:[], :project_id)
     scopes.push([:name_contains, query[:name]]) if query.try(:[], :name)
     scopes.push([:within_year, query[:year]]) if query.try(:[], :year)
