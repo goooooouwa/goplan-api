@@ -1,1 +1,1 @@
-json.partial! @todo, locals: { depth: 1 }, as: :todo
+json.partial! @todo, depth: 1, as: :todo
