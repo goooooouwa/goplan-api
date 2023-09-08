@@ -1,1 +1,1 @@
-json.array! @todos.reorder(:created_at).includes_associations, partial: 'todos/todo', as: :todo
+json.array! @todos.reorder(:created_at).includes_associations, partial: 'todos/todo', locals: { depth: 1 }, as: :todo
