@@ -71,7 +71,7 @@ class Todo < ApplicationRecord
   validate :end_date_cannot_earlier_than_start_date
   validate :end_date_cannot_later_than_dependents_start_date, on: :create
   validate :end_date_cannot_later_than_parents_end_date, on: :create
-  validate :end_date_cannot_earlier_than_children_end_date
+  validate :end_date_cannot_earlier_than_children_end_date, on: :create
   validate :todo_dependencies_cannot_include_self
   validate :todo_dependencies_cannot_include_dependents
   validate :todo_dependencies_cannot_include_deps_dependencies
