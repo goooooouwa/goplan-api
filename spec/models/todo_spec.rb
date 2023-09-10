@@ -313,23 +313,9 @@ RSpec.describe Todo, type: :model do
     expect(parent.end_date).to be_within(1.second).of todo2.end_date
   end
 
-  it 'has_many :children, after_add: :update_as_repeat' do
+  it 'has_many :children, before_add: :change_as_repeat' do
     project = create(:project)
     todo = create(:todo_with_past_start_date_and_future_end_date, children_attributes: [attributes_for(:todo, project_id: project.id)])
     expect(todo.repeat).to eq(true)
   end
-
-  it 'has_many :children, after_add: :initialize_child' do
-    project = create(:project)
-    todo = create(:todo_with_past_start_date_and_future_end_date, children_attributes: [attributes_for(:todo, project_id: project.id)])
-    expect(todo.children.first.start_date).to eq(todo.start_date)
-    expect(todo.children.first.end_date).to eq(todo.start_date)
-
-    delta = 3.days
-    todo.start_date = todo.start_date + delta
-    todo.save
-    expect(todo.children.first.start_date).to eq(todo.start_date)
-    expect(todo.children.first.end_date).to eq(todo.start_date)
-  end
-
 end
