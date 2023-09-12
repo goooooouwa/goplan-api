@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: '1124091489@qq.com'
-  layout 'mailer'
+  default from: ENV["SMTP_USER_NAME"]
+  layout "mailer"
 end
