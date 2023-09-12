@@ -22,6 +22,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - SECRET_KEY_BASE=${SECRET_KEY_BASE}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - ACTION_MAILER_DEFAULT_HOST=${ACTION_MAILER_DEFAULT_HOST}
     volumes:
       - static_files:/app/public
     depends_on:
