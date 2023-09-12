@@ -40,14 +40,14 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
-  config.action_mailer.default_url_options = { host: ENV["ACTION_MAILER_DEFAULT_HOST"], port: ENV["ACTION_MAILER_DEFAULT_PORT"] }
+  config.action_mailer.default_url_options = { host: ENV["ACTION_MAILER_DEFAULT_HOST"] }
 
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    port: 465,
-    address: "smtp.gmail.com",
+    port: 587,
+    address: "smtp.qq.com",
     user_name: ENV["SMTP_USER_NAME"],
     password: ENV["SMTP_PASSWORD"],
     authentication: :plain,

@@ -64,7 +64,7 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
-  config.action_mailer.default_url_options = { host: ENV['ACTION_MAILER_DEFAULT_HOST'], port: ENV['ACTION_MAILER_DEFAULT_PORT'] }
+  config.action_mailer.default_url_options = { host: ENV['ACTION_MAILER_DEFAULT_HOST'] }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
@@ -72,8 +72,8 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    port: 465,
-    address: 'smtp.gmail.com',
+    port: 587,
+    address: 'smtp.qq.com',
     user_name: ENV['SMTP_USER_NAME'],
     password: ENV['SMTP_PASSWORD'],
     authentication: :plain,
