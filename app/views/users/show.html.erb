@@ -1,9 +1,13 @@
 <div>
-  <h1>
-    Signed in as: <%= current_user.name || current_user.email %>.
-    <%= link_to "Sign out", destroy_user_session_path, method: :delete %>
-  </h1>
-  <h3>
-    Redirect to <%= link_to "GoPlan Web", ENV['GOPLAN_WEB_BASE_URL'], target: "_blank" %>
-  </h3>
+  <h2>
+    <%= current_user.name || current_user.email %>
+  </h2>
+  <ul>
+    <li>
+      <%= link_to t("sign_out"), destroy_user_session_path, method: :delete %><br />
+    </li>
+    <li>
+      <%= link_to t("goplan_web"), ENV["GOPLAN_WEB_BASE_URL"], target: "_blank" %>
+    </li>
+  </ul>
 </div>
