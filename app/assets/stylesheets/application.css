@@ -14,10 +14,3 @@
  *= require_self
  */
 
-body {
-  margin-left: 20px;
-}
-
-.omniauth-signin {
-  font-size: large;
-}
