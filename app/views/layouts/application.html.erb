@@ -11,6 +11,12 @@
   </head>
   <body>
     <div class="container mt-2">
+      <% unless notice.nil? %>
+        <p class="notice alert alert-warning"><%= notice %></p>
+      <% end %>
+      <% unless alert.nil? %>
+        <p class="alert alert-warning"><%= alert %></p>
+      <% end %>
       <%= yield %>
     </div>
     <script src="/assets/javascript/bootstrap@5.3.1/bootstrap.bundle.min.js"></script>
