@@ -115,6 +115,8 @@ GEM
     diff-lcs (1.5.0)
     doorkeeper (5.5.4)
       railties (>= 5)
+    doorkeeper-i18n (5.2.6)
+      doorkeeper (>= 5.2)
     doorkeeper-jwt (0.4.1)
       jwt (>= 2.1)
     dotenv (2.7.6)
@@ -393,6 +395,7 @@ DEPENDENCIES
   devise
   devise-i18n
   doorkeeper (~> 5.5)
+  doorkeeper-i18n
   doorkeeper-jwt
   dotenv-rails
   factory_bot_rails

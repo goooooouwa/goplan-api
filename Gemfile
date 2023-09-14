@@ -80,6 +80,7 @@ gem "omniauth-github", github: "omniauth/omniauth-github", branch: "master"
 gem "activeadmin"
 gem "doorkeeper", "~> 5.5"
 gem "doorkeeper-jwt"
+gem "doorkeeper-i18n"
 
 gem "sidekiq", "~> 6.4"
 gem "sidekiq-cron", "~> 1.4"
