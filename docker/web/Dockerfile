@@ -1,5 +1,5 @@
 # Base image:
-FROM nginx
+FROM nginx:1.25
 # Install dependencies
 RUN apt-get update -qq && apt-get -y install apache2-utils
 
