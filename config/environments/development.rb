@@ -13,7 +13,7 @@ Rails.application.configure do
 
   config.i18n.default_locale = "zh-CN"
 
-  config.hosts << "goooooouwa.fun"
+  config.hosts << "goooooouwa.eu.org"
   
   # Show full error reports.
   config.consider_all_requests_local = true

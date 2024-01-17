@@ -43,7 +43,7 @@ services:
       dockerfile: ./docker/web/Dockerfile
     volumes:
       - static_files:/var/www/app/public
-      - /home/admin/.acme.sh/goooooouwa.fun/:/certs
+      - /home/admin/.acme.sh/goooooouwa.eu.org/:/certs
     depends_on:
       - app
     ports:
