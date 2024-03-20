@@ -43,7 +43,8 @@ services:
       dockerfile: ./docker/web/Dockerfile
     volumes:
       - static_files:/var/www/app/public
-      - /home/admin/.acme.sh/goooooouwa.eu.org/:/certs
+      - ${SSL_CERTIFICATE}:/certs/fullchain.cer
+      - ${SSL_CERTIFICATE_KEY}:/certs/private.key
     depends_on:
       - app
     ports:
