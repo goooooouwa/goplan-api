@@ -48,5 +48,5 @@ services:
     depends_on:
       - app
     ports:
-      - ${PORT}:443
+      - ${GOPLAN_API_PORT}:443
     restart: unless-stopped
