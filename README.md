@@ -39,6 +39,13 @@ This will run the server in the development mode with the port you specify.
 6. `sudo docker exec <container> /bin/bash -c 'bundle exec rake db:migrate'`
 7. `sudo docker exec <container> /bin/bash -c 'bundle exec rake db:seed'`
 
+Please note, in production, AdminUser won't be created automatically for security reasons. You need to manually create a AdminUser in Rails console with the following commands:
+
+1. `sudo docker exec -it <container> /bin/bash -c 'bundle exec rails c'`
+2. `AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password')`
+
+Now, you can finish the steps in "Additional setup steps after server is run" section.
+
 ## How to test
 
 `bundle exec rspec`
