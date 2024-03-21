@@ -17,6 +17,16 @@ GoPlan web client: [https://github.com/goooooouwa/goplan-web](https://github.com
 
 This will run the server in the development mode with the port you specify.
 
+## How to deploy to production with Docker
+
+1. `cp .env.production.example .env`
+2. Modify `.env` to suit your docker deployment preferences
+3. `sudo docker compose build`
+4. `sudo docker compose up`
+5. `sudo docker exec <container> /bin/bash -c 'bundle exec rake db:create'`
+6. `sudo docker exec <container> /bin/bash -c 'bundle exec rake db:migrate'`
+7. `sudo docker exec <container> /bin/bash -c 'bundle exec rake db:seed'`
+
 ## Additional setup steps after server is run
 
 1. Go to OAuth applications page, e.g. http://localhost:8000/oauth/applications with initial admin username & password found in `db/seed.rb`
