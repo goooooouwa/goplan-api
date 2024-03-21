@@ -26,8 +26,7 @@ This will run the server in the development mode with the port you specify.
     - Confidential: uncheck
     - Scopes: write
 3. Copy the application UID and save it as REACT_APP_CLIENT_ID in the corresponding GoPlan Web env file
-4. Open the API server login page, e.g. http://localhost:8000/users/sign_in to sign up a user account
-5. Start GoPlan Web server, login and start using GoPlan.
+4. Start GoPlan Web server, login and start using GoPlan.
 
 ## How to deploy to production with Docker
 
