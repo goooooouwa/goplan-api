@@ -1,11 +1,11 @@
-FROM ruby:2.7.6
+FROM ruby:3.4.2
 
-# Install node 14-LTS and yarn
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get update -qq && apt-get install -qq --no-install-recommends \
-    nodejs \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# # Install node 14-LTS and yarn
+# RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+# RUN apt-get update -qq && apt-get install -qq --no-install-recommends \
+#     nodejs \
+#   && apt-get clean \
+#   && rm -rf /var/lib/apt/lists/*
 # RUN npm install -g yarn@1
 
 # Set an environment variable where the Rails app is installed to inside of Docker image:
