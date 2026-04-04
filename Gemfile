@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "2.7.6"
+ruby "3.4.2"
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
 gem "rails", "~> 6.1.6"
@@ -84,3 +84,8 @@ gem "doorkeeper-i18n"
 
 gem "sidekiq", "~> 6.4"
 gem "sidekiq-cron", "~> 1.4"
+
+gem 'concurrent-ruby', '1.3.4' # update rails to 7.1 to remove this dependency
+gem 'mutex_m'
+gem 'benchmark'
+gem 'rdoc'
