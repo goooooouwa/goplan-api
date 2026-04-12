@@ -285,8 +285,6 @@ RSpec.describe Todo, type: :model do
     delta = 24.hours
     todo.update start_date: todo.start_date + delta
     expect(todo).to be_valid
-    puts todo.children.first.start_date
-    puts todo1.start_date
     expect(todo.children.first.start_date).to be_within(1.second).of todo1.start_date + delta
     expect(todo.children.last.start_date).to be_within(1.second).of todo2.start_date + delta
   end
@@ -317,5 +315,30 @@ RSpec.describe Todo, type: :model do
     project = create(:project)
     todo = create(:todo_with_past_start_date_and_future_end_date, children_attributes: [attributes_for(:todo, project_id: project.id)])
     expect(todo.repeat).to eq(true)
+  end
+
+  describe '.search' do
+    let(:user) { create(:user) }
+    let(:project_a) { create(:project, user: user, name: 'Alpha project') }
+    let(:project_b) { create(:project, user: user, name: 'Beta project') }
+    let!(:todo_find) { create(:todo, project: project_a, name: 'Find reports') }
+    let!(:todo_other) { create(:todo, project: project_b, name: 'Unrelated') }
+
+    it 'returns the scoped relation when no filters are present' do
+      scoped = user.todos.search({})
+      expect(scoped).to include(todo_find, todo_other)
+    end
+
+    it 'filters by project_id' do
+      scoped = user.todos.search({ project_id: project_a.id })
+      expect(scoped).to include(todo_find)
+      expect(scoped).not_to include(todo_other)
+    end
+
+    it 'filters by case-insensitive name substring' do
+      scoped = user.todos.search({ name: 'find' })
+      expect(scoped).to include(todo_find)
+      expect(scoped).not_to include(todo_other)
+    end
   end
 end
