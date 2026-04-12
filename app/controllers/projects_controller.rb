@@ -12,7 +12,8 @@ class ProjectsController < ApiController
 
   # POST /projects
   def create
-    @project = Project.new(project_params)
+    # Always scope to the OAuth user — ignore client-supplied user_id (IDOR prevention)
+    @project = current_resource_owner.projects.build(project_params)
 
     if @project.save
       render 'projects/show', status: :created, location: @project
@@ -40,11 +41,14 @@ class ProjectsController < ApiController
   # Use callbacks to share common setup or constraints between actions.
   def set_project
     @project = Project.find(params[:id])
-    redirect_to root_path if current_resource_owner != @project.user
+    unless current_resource_owner == @project.user
+      redirect_to root_path
+      return
+    end
   end
 
   # Only allow a list of trusted parameters through.
   def project_params
-    params.require(:project).permit(:user_id, :name, :target_date)
+    params.require(:project).permit(:name, :target_date)
   end
 end

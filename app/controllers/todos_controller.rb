@@ -27,8 +27,15 @@ class TodosController < ApiController
 
   # POST /todos
   def create
-    @todo = Todo.new(todo_params)
-    
+    permitted = todo_params
+    project = current_resource_owner.projects.find_by(id: permitted[:project_id])
+    unless project
+      render json: { error: "Project not found or forbidden" }, status: :forbidden
+      return
+    end
+
+    @todo = project.todos.build(permitted)
+
     if @todo.save
       render 'todos/show', status: :created, location: @todo
     else
@@ -39,11 +46,19 @@ class TodosController < ApiController
   # PATCH/PUT /todos/1
   def update
     unless params[:dependencies_attributes].nil?
+      # Client may send only top-level dependencies_attributes; avoid nil[:todo] crash
+      params[:todo] ||= ActionController::Parameters.new({})
       params[:todo][:todo_dependencies_attributes] =
         build_todo_dependencies_attributes(@todo, params[:dependencies_attributes])
     end
 
-    if @todo.update(todo_params)
+    permitted = todo_params
+    if forbidden_project_change?(permitted)
+      render json: { error: "Project not found or forbidden" }, status: :forbidden
+      return
+    end
+
+    if @todo.update(permitted)
       render 'todos/show'
     else
       render json: @todo.errors, status: :unprocessable_entity
@@ -83,7 +98,20 @@ class TodosController < ApiController
   # Use callbacks to share common setup or constraints between actions.
   def set_todo
     @todo = Todo.find(params[:id])
-    redirect_to root_path if current_resource_owner != @todo.project.user
+    unless current_resource_owner == @todo.project.user
+      redirect_to root_path
+      return
+    end
+  end
+
+  def forbidden_project_change?(permitted)
+    pid = permitted[:project_id]
+    return false if pid.blank?
+
+    pid = pid.to_i
+    return false if pid == @todo.project_id
+
+    !current_resource_owner.projects.exists?(id: pid)
   end
 
   # Only allow a list of trusted parameters through.

@@ -30,19 +30,33 @@ RSpec.describe "Projects API", type: :request do
 
       expect do
         post "/projects",
-             params: { project: { user_id: user.id, name: "Roadmap", target_date: target } },
+             params: { project: { name: "Roadmap", target_date: target } },
              headers: auth_headers
       end.to change(Project, :count).by(1)
 
       expect(response).to have_http_status(:created)
       json = JSON.parse(response.body)
       expect(json["name"]).to eq("Roadmap")
+      expect(Project.last.user_id).to eq(user.id)
+    end
+
+    it "ignores a spoofed user_id and always assigns the OAuth user" do
+      other = create(:user)
+      target = Time.zone.parse("2025-06-01")
+
+      post "/projects",
+           params: { project: { user_id: other.id, name: "Hijack", target_date: target } },
+           headers: auth_headers
+
+      expect(response).to have_http_status(:created)
+      expect(Project.last.user_id).to eq(user.id)
+      expect(Project.last.user_id).not_to eq(other.id)
     end
 
     it "returns 422 when validation fails" do
       expect do
         post "/projects",
-             params: { project: { user_id: user.id, name: "" } },
+             params: { project: { name: "" } },
              headers: auth_headers
       end.not_to change(Project, :count)
 
@@ -74,18 +88,31 @@ RSpec.describe "Projects API", type: :request do
       project = create(:project, user: user, name: "Old")
 
       patch "/projects/#{project.id}",
-            params: { project: { user_id: user.id, name: "New", target_date: project.target_date } },
+            params: { project: { name: "New", target_date: project.target_date } },
             headers: auth_headers
 
       expect(response).to have_http_status(:ok)
       expect(project.reload.name).to eq("New")
     end
 
+    it "does not reassign the project to another user via user_id" do
+      project = create(:project, user: user, name: "Owned")
+      other = create(:user)
+
+      patch "/projects/#{project.id}",
+            params: { project: { user_id: other.id, name: "Still mine", target_date: project.target_date } },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(project.reload.user_id).to eq(user.id)
+      expect(project.user_id).not_to eq(other.id)
+    end
+
     it "returns 422 when validation fails" do
       project = create(:project, user: user)
 
       patch "/projects/#{project.id}",
-            params: { project: { user_id: user.id, name: "" } },
+            params: { project: { name: "" } },
             headers: auth_headers
 
       expect(response).to have_http_status(:unprocessable_entity)

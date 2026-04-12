@@ -31,7 +31,6 @@ RSpec.describe User, type: :model do
   describe '.new_with_session' do
     it 'fills email from session when blank' do
       session = { 'devise.oauth.data' => { 'info' => { 'email' => 'session@example.com' } } }
-      allow($stdout).to receive(:puts)
       user = User.new_with_session({ email: '' }, session)
       expect(user.email).to eq('session@example.com')
     end

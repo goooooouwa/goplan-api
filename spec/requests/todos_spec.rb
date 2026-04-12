@@ -60,6 +60,25 @@ RSpec.describe "Todos API", type: :request do
 
       expect(response).to have_http_status(:unprocessable_entity)
     end
+
+    it "returns 403 when project_id belongs to another user" do
+      other_project = create(:project)
+
+      post "/todos",
+           params: {
+             todo: {
+               project_id: other_project.id,
+               name: "Steal",
+               description: "x",
+               start_date: "2022-02-01",
+               end_date: "2022-02-10"
+             }
+           },
+           headers: auth_headers
+
+      expect(response).to have_http_status(:forbidden)
+      expect(Todo.find_by(name: "Steal")).to be_nil
+    end
   end
 
   describe "GET /todos/:id" do
@@ -193,6 +212,35 @@ RSpec.describe "Todos API", type: :request do
             headers: auth_headers
 
       expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "returns 403 when moving the todo to another user's project" do
+      other_project = create(:project)
+
+      patch "/todos/#{todo.id}",
+            params: {
+              todo: {
+                project_id: other_project.id,
+                name: todo.name,
+                description: todo.description,
+                start_date: todo.start_date,
+                end_date: todo.end_date
+              }
+            },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:forbidden)
+      expect(todo.reload.project_id).to eq(project.id)
+    end
+
+    it "does not crash when dependencies_attributes is sent without a todo key" do
+      patch "/todos/#{todo.id}",
+            params: { dependencies_attributes: [prereq.id] },
+            headers: auth_headers
+
+      expect(response).not_to have_http_status(:internal_server_error)
+      expect(response).to have_http_status(:ok)
+      expect(todo.reload.dependencies).to include(prereq)
     end
   end
 
