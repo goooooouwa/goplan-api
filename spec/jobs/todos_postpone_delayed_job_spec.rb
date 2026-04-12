@@ -30,7 +30,8 @@ RSpec.describe TodosPostponeDelayedJob, type: :job do
 
   it "does not process todos that still have dependencies" do
     travel_to Time.zone.parse("2025-06-15 12:00") do
-      blocker = create(:todo, project: project, start_date: 10.days.ago, end_date: 8.days.ago, status: false)
+      # Blocker is done so the job will not touch it (undone scope); blocked stays out of :independent.
+      blocker = create(:todo, project: project, start_date: 10.days.ago, end_date: 8.days.ago, status: true)
       blocked = create(:todo, project: project, start_date: 5.days.ago, end_date: 3.days.ago, status: false)
       TodoDependent.create!(todo_id: blocker.id, dependent_id: blocked.id)
 

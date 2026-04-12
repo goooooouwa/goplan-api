@@ -5,9 +5,10 @@ RSpec.describe UserMailer, type: :mailer do
     let(:mail) { UserMailer.welcome_message }
 
     it "renders the headers" do
-      expect(mail.subject).to eq("Welcome message")
-      expect(mail.to).to eq(["to@example.org"])
-      expect(mail.from).to eq(["from@example.com"])
+      expect(mail.subject).to eq("Test Mail")
+      expect(mail.to).to eq(["example@email.com"])
+      expected_from = ApplicationMailer.default[:from]
+      expect(mail.from).to eq(Array.wrap(expected_from))
     end
 
     it "renders the body" do

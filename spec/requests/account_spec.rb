@@ -17,7 +17,7 @@ RSpec.describe "Account API", type: :request do
       json = JSON.parse(response.body)
       expect(json["email"]).to eq(user.email)
       expect(json["name"]).to eq("Ada")
-      expect(json["image_url"]).to eq("https://example.com/a.png")
+      expect(json["imageUrl"]).to eq("https://example.com/a.png")
     end
   end
 
@@ -30,7 +30,7 @@ RSpec.describe "Account API", type: :request do
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
       expect(json["name"]).to eq("Updated")
-      expect(json["image_url"]).to eq("https://example.com/b.png")
+      expect(json["imageUrl"]).to eq("https://example.com/b.png")
       expect(user.reload.name).to eq("Updated")
     end
   end

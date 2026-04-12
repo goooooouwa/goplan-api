@@ -59,7 +59,7 @@ class Todo < ApplicationRecord
   scope :independent, -> { left_outer_joins(:dependencies).where(dependencies: { id: nil }) }
   scope :leaf, -> { left_outer_joins(:children).where(children: { id: nil }) }
   scope :root, -> { left_outer_joins(:parents).where(parents: { id: nil }) }
-  scope :end_date_before, ->(date) { where('end_date <= ?', date) }
+  scope :end_date_before, ->(date) { where('todos.end_date <= ?', date) }
 
   validates_presence_of :name
   validates_presence_of :start_date
