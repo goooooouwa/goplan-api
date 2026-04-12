@@ -33,5 +33,16 @@ RSpec.describe "Account API", type: :request do
       expect(json["imageUrl"]).to eq("https://example.com/b.png")
       expect(user.reload.name).to eq("Updated")
     end
+
+    it "returns 422 when update fails" do
+      allow_any_instance_of(User).to receive(:update).and_return(false)
+      allow_any_instance_of(User).to receive(:errors).and_return(
+        ActiveModel::Errors.new(User.new).tap { |e| e.add(:name, "is invalid") }
+      )
+
+      put "/me", params: { user: { name: "x" } }, headers: auth_headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
   end
 end

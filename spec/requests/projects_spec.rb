@@ -51,12 +51,44 @@ RSpec.describe "Projects API", type: :request do
   end
 
   describe "GET /projects/:id" do
+    it "returns JSON for the owner's project" do
+      project = create(:project, user: user, name: "Owned")
+
+      get "/projects/#{project.id}", headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["name"]).to eq("Owned")
+    end
+
     it "redirects when the project belongs to another user" do
       other_project = create(:project)
 
       get "/projects/#{other_project.id}", headers: auth_headers
 
       expect(response).to have_http_status(:redirect)
+    end
+  end
+
+  describe "PATCH /projects/:id" do
+    it "updates the project" do
+      project = create(:project, user: user, name: "Old")
+
+      patch "/projects/#{project.id}",
+            params: { project: { user_id: user.id, name: "New", target_date: project.target_date } },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(project.reload.name).to eq("New")
+    end
+
+    it "returns 422 when validation fails" do
+      project = create(:project, user: user)
+
+      patch "/projects/#{project.id}",
+            params: { project: { user_id: user.id, name: "" } },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 

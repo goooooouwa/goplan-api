@@ -317,6 +317,54 @@ RSpec.describe Todo, type: :model do
     expect(todo.repeat).to eq(true)
   end
 
+  describe 'graph helpers' do
+    it 'reports first appearance of a dependency in a todo set' do
+      project = create(:project)
+      dep = create(:todo, project: project, name: 'Dep')
+      a = create(:todo_with_future_start_and_end_date, project: project, name: 'A',
+                                                       todo_dependencies_attributes: [{ todo_id: dep.id }])
+      b = create(:todo_with_future_start_and_end_date, project: project, name: 'B',
+                                                       todo_dependencies_attributes: [{ todo_id: dep.id }])
+      todos = Todo.where(id: [a.id, b.id])
+      first_id = todos.has_dependency(dep.id).reorder(:created_at).limit(1).first.id
+      expect(a.first_appearance_of_dependency_in_todos?(dep, todos)).to eq(first_id == a.id)
+      expect(b.first_appearance_of_dependency_in_todos?(dep, todos)).to eq(first_id == b.id)
+    end
+
+    it 'reports first appearance of a dependent in a todo set' do
+      project = create(:project)
+      parent = create(:todo, project: project, name: 'P')
+      child = create(:todo_with_future_start_and_end_date, project: project, name: 'C')
+      TodoDependent.create!(todo_id: parent.id, dependent_id: child.id)
+      todos = Todo.where(id: parent.id)
+      expect(parent.first_appearance_of_dependent_in_todos?(child, todos)).to eq(true)
+    end
+
+    it 'builds nested association arrays for includes' do
+      shallow = Todo.send(:build_association_array, 0)
+      expect(shallow.flatten.compact).to include(:project)
+
+      deep = Todo.send(:build_association_array, 5)
+      expect(deep.inspect).to include('parents')
+      expect(deep.inspect).to include('children')
+    end
+  end
+
+  describe 'repeat / generate_punched_tasks' do
+    it 'creates child todos when repeat_times is positive' do
+      project = create(:project)
+      todo = create(
+        :todo,
+        project: project,
+        repeat_times: 1,
+        repeat_period: 'day',
+        start_date: Time.zone.parse('2022-01-01'),
+        end_date: Time.zone.parse('2022-01-04')
+      )
+      expect(todo.children).not_to be_empty
+    end
+  end
+
   describe '.search' do
     let(:user) { create(:user) }
     let(:project_a) { create(:project, user: user, name: 'Alpha project') }

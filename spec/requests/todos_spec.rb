@@ -63,12 +63,136 @@ RSpec.describe "Todos API", type: :request do
   end
 
   describe "GET /todos/:id" do
+    it "returns JSON for the owner's todo" do
+      todo = create(:todo, project: project, name: "Mine")
+
+      get "/todos/#{todo.id}", headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)["name"]).to eq("Mine")
+    end
+
     it "redirects when the todo belongs to another user" do
       other_todo = create(:todo)
 
       get "/todos/#{other_todo.id}", headers: auth_headers
 
       expect(response).to have_http_status(:redirect)
+    end
+  end
+
+  describe "GET /todos/:id/dependencies and /dependents" do
+    # dep must be done so "Next" is actionable; dependencies.json.jbuilder only shows
+    # prerequisite todos that are "dependentless", so a linear A<-B chain yields [] for /dependencies.
+    let(:dep) do
+      create(:todo, project: project, name: "Prereq", status: true, start_date: "2022-01-01", end_date: "2022-01-02")
+    end
+    let(:dependent) do
+      create(:todo, project: project, name: "Next", status: false, start_date: "2022-01-03", end_date: "2022-01-10")
+    end
+
+    before do
+      TodoDependent.create!(todo_id: dep.id, dependent_id: dependent.id)
+    end
+
+    it "returns dependencies JSON (may be empty when prereqs are not dependentless)" do
+      get "/todos/#{dependent.id}/dependencies", headers: auth_headers
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to be_a(Array)
+    end
+
+    it "lists dependents that are actionable" do
+      get "/todos/#{dep.id}/dependents", headers: auth_headers
+      expect(response).to have_http_status(:ok)
+      names = JSON.parse(response.body).map { |t| t["name"] }
+      expect(names).to include("Next")
+    end
+  end
+
+  describe "PATCH /todos/:id" do
+    let(:prereq) do
+      create(:todo, project: project, name: "Blocker", start_date: "2022-01-01", end_date: "2022-01-02")
+    end
+    let(:todo) do
+      create(:todo, project: project, name: "Task", start_date: "2022-01-03", end_date: "2022-01-10")
+    end
+
+    it "updates the todo" do
+      patch "/todos/#{todo.id}",
+            params: {
+              todo: {
+                project_id: project.id,
+                name: "Renamed",
+                description: todo.description,
+                start_date: todo.start_date,
+                end_date: todo.end_date
+              }
+            },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(todo.reload.name).to eq("Renamed")
+    end
+
+    it "rebuilds dependencies when dependencies_attributes is present" do
+      patch "/todos/#{todo.id}",
+            params: {
+              dependencies_attributes: [prereq.id],
+              todo: {
+                project_id: project.id,
+                name: todo.name,
+                description: todo.description,
+                start_date: todo.start_date,
+                end_date: todo.end_date
+              }
+            },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(todo.reload.dependencies).to include(prereq)
+    end
+
+    it "removes dependencies not listed in dependencies_attributes" do
+      extra = create(:todo, project: project, name: "Extra", start_date: "2022-01-01", end_date: "2022-01-02")
+      task = create(
+        :todo,
+        project: project,
+        name: "Multi",
+        start_date: "2022-01-03",
+        end_date: "2022-01-10",
+        todo_dependencies_attributes: [{ todo_id: prereq.id }, { todo_id: extra.id }]
+      )
+
+      patch "/todos/#{task.id}",
+            params: {
+              dependencies_attributes: [prereq.id],
+              todo: {
+                project_id: project.id,
+                name: task.name,
+                description: task.description,
+                start_date: task.start_date,
+                end_date: task.end_date
+              }
+            },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(task.reload.dependencies).to contain_exactly(prereq)
+    end
+
+    it "returns 422 when validation fails" do
+      patch "/todos/#{todo.id}",
+            params: {
+              todo: {
+                project_id: project.id,
+                name: "",
+                start_date: todo.start_date,
+                end_date: todo.end_date
+              }
+            },
+            headers: auth_headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 

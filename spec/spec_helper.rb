@@ -5,6 +5,8 @@ if ENV["COVERAGE"]
     add_filter "/config/"
     add_filter "/db/"
     add_filter "/vendor/bundle/"
+    # ActiveAdmin is DSL-only and isn’t a good fit for line-coverage goals; test it via manual/admin UI rather than line-coverage targets
+    add_filter "/app/admin/"
     add_group "Models", "app/models"
     add_group "Controllers", "app/controllers"
     add_group "Jobs", "app/jobs"

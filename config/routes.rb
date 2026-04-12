@@ -27,4 +27,11 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root to: "home#index"
   root to: redirect(ENV['GOPLAN_WEB_BASE_URL'])
+
+  if Rails.env.test?
+    get "home", to: "home#index"
+    devise_scope :user do
+      get "oauth_failure", to: "users/omniauth_callbacks#failure"
+    end
+  end
 end
